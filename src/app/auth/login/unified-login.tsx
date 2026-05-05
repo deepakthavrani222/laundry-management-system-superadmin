@@ -14,9 +14,7 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
-  KeyRound,
-  Users,
-  DollarSign
+  KeyRound
 } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
@@ -39,75 +37,6 @@ export default function UnifiedLogin() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [useBackupCode, setUseBackupCode] = useState(false)
-  const [selectedQuickLogin, setSelectedQuickLogin] = useState<'superadmin' | 'sales' | 'support' | 'finance' | 'auditor' | null>(null)
-
-  // Quick login credentials
-  const quickLoginOptions = {
-    superadmin: {
-      email: 'superadmin@laundrypro.com',
-      password: 'SuperAdmin@123',
-      label: 'SuperAdmin Login',
-      icon: Shield,
-      color: 'purple'
-    },
-    sales: {
-      email: 'virat@sales.com',
-      password: 'sales123',
-      label: 'Sales Login',
-      icon: Users,
-      color: 'blue'
-    },
-    support: {
-      email: 'support@gmail.com',
-      password: 'deep2025',
-      label: 'Support Login',
-      icon: KeyRound,
-      color: 'green'
-    },
-    finance: {
-      email: 'finance@gmail.com',
-      password: 'finance2025',
-      label: 'Finance Admin',
-      icon: DollarSign,
-      color: 'emerald'
-    },
-    auditor: {
-      email: 'auditor@gmail.com',
-      password: 'auditor2025',
-      label: 'Platform Auditor',
-      icon: Eye,
-      color: 'orange'
-    }
-  }
-
-  const handleQuickLogin = (type: 'superadmin' | 'sales' | 'support' | 'finance' | 'auditor') => {
-    const credentials = quickLoginOptions[type]
-    setFormData({
-      ...formData,
-      email: credentials.email,
-      password: credentials.password
-    })
-    setSelectedQuickLogin(type)
-  }
-
-  const clearQuickLogin = () => {
-    setFormData({
-      ...formData,
-      email: '',
-      password: ''
-    })
-    setSelectedQuickLogin(null)
-  }
-
-  const handleCheckboxChange = (type: 'superadmin' | 'sales' | 'support' | 'finance' | 'auditor', checked: boolean) => {
-    if (checked) {
-      // If checking this box, uncheck the other and fill credentials
-      handleQuickLogin(type)
-    } else {
-      // If unchecking, clear credentials
-      clearQuickLogin()
-    }
-  }
 
   const detectUserTypeAndLogin = async () => {
     let lastError = null
@@ -470,68 +399,6 @@ export default function UnifiedLogin() {
                   'Sign In'
                 )}
               </Button>
-
-              {/* Quick Login Checkboxes - Smart 5-item Layout */}
-              <div className="mt-4 pt-4 border-t border-white/20">
-                <p className="text-xs text-gray-400 text-center mb-3">Quick Login</p>
-                <div className="space-y-2">
-                  {/* First row: 3 items */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedQuickLogin === 'superadmin'}
-                        onChange={(e) => handleCheckboxChange('superadmin', e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
-                      />
-                      <span className="text-xs text-gray-300">SuperAdmin</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedQuickLogin === 'sales'}
-                        onChange={(e) => handleCheckboxChange('sales', e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                      />
-                      <span className="text-xs text-gray-300">Sales</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedQuickLogin === 'support'}
-                        onChange={(e) => handleCheckboxChange('support', e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-green-500 focus:ring-green-500 focus:ring-offset-0"
-                      />
-                      <span className="text-xs text-gray-300">Support</span>
-                    </label>
-                  </div>
-
-                  {/* Second row: 2 items centered */}
-                  <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedQuickLogin === 'finance'}
-                        onChange={(e) => handleCheckboxChange('finance', e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0"
-                      />
-                      <span className="text-xs text-gray-300">Finance</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedQuickLogin === 'auditor'}
-                        onChange={(e) => handleCheckboxChange('auditor', e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
-                      />
-                      <span className="text-xs text-gray-300">Auditor</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
             </form>
           ) : (
             <form onSubmit={handleMFASubmit} className="space-y-6">
