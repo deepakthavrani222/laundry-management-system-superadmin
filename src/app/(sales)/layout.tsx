@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   TrendingUp,
-  Users2
+  Users2,
+  Gift
 } from 'lucide-react'
 import NotificationContainer from '@/components/NotificationContainer'
 import NotificationBell from '@/components/layout/NotificationBell'
@@ -86,6 +87,7 @@ export default function SalesLayout({
     { name: 'Upgrades', href: '/upgrades', icon: TrendingUp },
     { name: 'Team', href: '/sales-team', icon: Users2 },
     { name: 'Subscriptions', href: '/subscriptions', icon: CreditCard },
+    { name: 'Promo Codes', href: '/promos', icon: Gift },
     { name: 'Payments', href: '/payments', icon: DollarSign },
   ]
 

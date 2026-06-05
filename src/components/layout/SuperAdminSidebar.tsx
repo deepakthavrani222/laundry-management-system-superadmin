@@ -87,6 +87,7 @@ const getSidebarNavigationByRole = (
       subItems: [
         { name: 'Tenancies', href: '/tenancies', icon: Crown },
         { name: 'Tenancy Analytics', href: '/tenancy-analytics', icon: PieChart },
+        { name: 'Promo Codes', href: '/promos', icon: Gift },
       ]
     },
     {

@@ -3,16 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import api from '@/lib/api'
-import { 
-  ArrowLeft, 
-  CreditCard, 
-  Clock, 
+import {
+  ArrowLeft,
+  CreditCard,
+  Clock,
   CheckCircle,
   Pause,
   Play,
   TrendingUp,
   TrendingDown,
   Calendar,
+  CalendarClock,
+  Gift,
   Smartphone
 } from 'lucide-react'
 import Link from 'next/link'
@@ -48,6 +50,8 @@ export default function SubscriptionDetailPage() {
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [showDowngradeModal, setShowDowngradeModal] = useState(false)
+  const [showAssignPlanModal, setShowAssignPlanModal] = useState(false)
+  const [showExtendTrialModal, setShowExtendTrialModal] = useState(false)
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false)
   const [generatedPaymentLink, setGeneratedPaymentLink] = useState('')
   const [upgradeRequestData, setUpgradeRequestData] = useState<any>(null)
@@ -302,6 +306,22 @@ export default function SubscriptionDetailPage() {
                 <TrendingDown className="w-5 h-5" />
                 Downgrade Plan
               </button>
+
+              <button
+                onClick={() => setShowAssignPlanModal(true)}
+                className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Gift className="w-5 h-5" />
+                Assign Plan / Grant Trial
+              </button>
+
+              <button
+                onClick={() => setShowExtendTrialModal(true)}
+                className="w-full px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <CalendarClock className="w-5 h-5" />
+                Extend Trial
+              </button>
             </div>
           </div>
         </div>
@@ -342,6 +362,31 @@ export default function SubscriptionDetailPage() {
           onClose={() => setShowDowngradeModal(false)}
           onSuccess={() => {
             setShowDowngradeModal(false)
+            fetchSubscription()
+          }}
+        />
+      )}
+
+      {showAssignPlanModal && (
+        <AssignPlanModal
+          subscriptionId={subscriptionId}
+          tenancyName={subscription.tenancyName}
+          onClose={() => setShowAssignPlanModal(false)}
+          onSuccess={() => {
+            setShowAssignPlanModal(false)
+            fetchSubscription()
+          }}
+        />
+      )}
+
+      {showExtendTrialModal && (
+        <ExtendTrialModal
+          subscriptionId={subscriptionId}
+          tenancyName={subscription.tenancyName}
+          currentTrialEnd={subscription.trial?.endDate}
+          onClose={() => setShowExtendTrialModal(false)}
+          onSuccess={() => {
+            setShowExtendTrialModal(false)
             fetchSubscription()
           }}
         />
@@ -935,6 +980,259 @@ function PaymentLinkModal({ paymentLink, upgradeData, tenancyName, onClose }: an
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Assign Plan / Grant Trial Modal — POST /sales/subscriptions/:tenancyId/assign-plan
+function AssignPlanModal({ subscriptionId, tenancyName, onClose, onSuccess }: any) {
+  const [planId, setPlanId] = useState('')
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
+  const [trialDays, setTrialDays] = useState<number>(90)
+  const [availablePlans, setAvailablePlans] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api.get('/sales/subscriptions/plans')
+      .then(res => {
+        if (res.data?.success) setAvailablePlans(res.data.data.plans || [])
+      })
+      .catch(err => console.error('Failed to fetch plans:', err))
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!planId) {
+      setError('Please select a plan')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      await api.post(`/sales/subscriptions/${subscriptionId}/assign-plan`, {
+        planId,
+        billingCycle,
+        trialDays: Number(trialDays) || 0,
+      })
+      onSuccess()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to assign plan')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const selectedPlan = availablePlans.find(p => p._id === planId)
+  const computedEndDate = trialDays > 0
+    ? new Date(Date.now() + Number(trialDays) * 24 * 60 * 60 * 1000).toLocaleDateString()
+    : null
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 p-6 rounded-t-2xl">
+          <h2 className="text-2xl font-bold text-white">Assign Plan / Grant Trial</h2>
+          <p className="text-white/80 text-sm mt-1">for {tenancyName}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Plan</label>
+            <select
+              value={planId}
+              onChange={(e) => setPlanId(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none"
+              required
+            >
+              <option value="">Select a plan</option>
+              {availablePlans.map(plan => (
+                <option key={plan._id} value={plan._id}>
+                  {plan.displayName || plan.name} — ₹{plan.price?.monthly ?? 0}/mo
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Billing Cycle</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(['monthly', 'yearly'] as const).map(cycle => (
+                <button
+                  key={cycle}
+                  type="button"
+                  onClick={() => setBillingCycle(cycle)}
+                  className={`px-4 py-3 rounded-xl font-semibold transition-colors capitalize ${
+                    billingCycle === cycle
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cycle}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Trial Days <span className="text-gray-500 font-normal">(0 = activate immediately, max 90)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={90}
+              value={trialDays}
+              onChange={(e) => setTrialDays(Number(e.target.value))}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none"
+            />
+            <div className="flex gap-2 mt-2">
+              {[0, 30, 60, 90].map(days => (
+                <button
+                  key={days}
+                  type="button"
+                  onClick={() => setTrialDays(days)}
+                  className="px-3 py-1 text-xs bg-purple-50 text-purple-700 rounded-full hover:bg-purple-100"
+                >
+                  {days === 0 ? 'No trial' : `${days} days`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(selectedPlan || computedEndDate) && (
+            <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-sm text-purple-900 space-y-1">
+              {selectedPlan && <p>Plan: <span className="font-semibold">{selectedPlan.displayName || selectedPlan.name}</span></p>}
+              {computedEndDate && <p>Trial ends: <span className="font-semibold">{computedEndDate}</span></p>}
+              {!computedEndDate && <p>Status will be set to <span className="font-semibold">active</span> immediately.</p>}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Assigning...' : 'Assign Plan'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Extend Trial Modal — POST /sales/subscriptions/:tenancyId/extend-trial
+function ExtendTrialModal({ subscriptionId, tenancyName, currentTrialEnd, onClose, onSuccess }: any) {
+  const [extensionDays, setExtensionDays] = useState<number>(30)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const baseDate = currentTrialEnd ? new Date(currentTrialEnd) : new Date()
+  const newEndDate = new Date(baseDate.getTime() + Number(extensionDays) * 24 * 60 * 60 * 1000)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await api.post(`/sales/subscriptions/${subscriptionId}/extend-trial`, {
+        extensionDays: Number(extensionDays),
+      })
+      onSuccess()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to extend trial')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600 p-6 rounded-t-2xl">
+          <h2 className="text-2xl font-bold text-white">Extend Trial</h2>
+          <p className="text-white/80 text-sm mt-1">for {tenancyName}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {currentTrialEnd && (
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 text-sm text-gray-700">
+              Current trial ends: <span className="font-semibold">{baseDate.toLocaleDateString()}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Extension Days <span className="text-gray-500 font-normal">(1–30 per call)</span>
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={extensionDays}
+              onChange={(e) => setExtensionDays(Number(e.target.value))}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:outline-none"
+              required
+            />
+            <div className="flex gap-2 mt-2">
+              {[7, 14, 30].map(days => (
+                <button
+                  key={days}
+                  type="button"
+                  onClick={() => setExtensionDays(days)}
+                  className="px-3 py-1 text-xs bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100"
+                >
+                  +{days} days
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 text-sm text-amber-900">
+            New trial ends: <span className="font-semibold">{newEndDate.toLocaleDateString()}</span>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Extending...' : 'Extend Trial'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
