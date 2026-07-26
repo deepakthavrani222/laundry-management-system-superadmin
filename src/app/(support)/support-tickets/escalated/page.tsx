@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
+import api from '@/lib/api'
+import {
   AlertTriangle,
   Clock,
   ArrowUpRight,
@@ -85,33 +86,11 @@ export default function EscalatedTicketsPage() {
 
   const loadEscalatedTickets = async () => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) {
-        setLoading(false)
-        return
-      }
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
-
       // Load escalated tickets
       try {
-        const response = await fetch(`${API_URL}/support/tickets?status=escalated`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.data) {
+        const response = await api.get('/support/tickets', { params: { status: 'escalated' } })
+        const data = response.data
+        if (data.success && data.data) {
             const transformedTickets = data.data
               .filter((ticket: any) => ticket.status === 'escalated')
               .map((ticket: any) => ({
@@ -157,7 +136,6 @@ export default function EscalatedTicketsPage() {
               escalationRate: 12, // Percentage
               slaBreaches: transformedTickets.filter((t: any) => t.slaTimer?.includes('overdue')).length
             })
-          }
         }
       } catch (error) {
         console.error('Failed to load escalated tickets:', error)

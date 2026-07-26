@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/lib/api'
-import { 
-  DollarSign, 
-  TrendingUp, 
+import toast from 'react-hot-toast'
+import {
+  DollarSign,
+  TrendingUp,
   TrendingDown,
   CreditCard,
   Receipt,
@@ -18,22 +19,6 @@ import {
   RefreshCw,
   Search
 } from 'lucide-react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
-} from 'recharts'
 
 interface FinanceStats {
   revenue: {
@@ -65,60 +50,40 @@ export default function FinanceDashboardPage() {
   const { user } = useAuthStore()
   const [stats, setStats] = useState<FinanceStats | null>(null)
   const [loading, setLoading] = useState(true)
-  
+  const [error, setError] = useState<string | null>(null)
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([])
 
-  useEffect(() => {
-    // Simulate loading data
-    setTimeout(() => {
+  const fetchFinanceData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get('/superadmin/financial/overview')
+      const d = res.data?.data || res.data
       setStats({
         revenue: {
-          total: 2456789,
-          thisMonth: 345678,
-          lastMonth: 298456,
-          growth: 12.5
+          total: d.totalRevenue ?? d.revenue?.total ?? 0,
+          thisMonth: d.monthlyRevenue ?? d.revenue?.thisMonth ?? 0,
+          lastMonth: d.lastMonthRevenue ?? d.revenue?.lastMonth ?? 0,
+          growth: d.revenueGrowth ?? d.revenue?.growth ?? 0
         },
         payments: {
-          total: 12456,
-          successful: 12233,
-          pendingRefunds: 23,
-          successRate: 98.5,
-          avgTransactionValue: 197
+          total: d.totalTransactions ?? d.payments?.total ?? 0,
+          successful: d.successfulTransactions ?? d.payments?.successful ?? 0,
+          pendingRefunds: d.pendingRefunds ?? d.payments?.pendingRefunds ?? 0,
+          successRate: d.successRate ?? d.payments?.successRate ?? 0,
+          avgTransactionValue: d.avgTransactionValue ?? d.payments?.avgTransactionValue ?? 0
         }
       })
-
-      setRecentTransactions([
-        {
-          id: 'TXN-001',
-          customer: 'John Doe',
-          tenancy: 'QuickWash',
-          amount: 250,
-          type: 'payment',
-          status: 'completed',
-          createdAt: '2024-01-24T10:30:00Z'
-        },
-        {
-          id: 'TXN-002',
-          customer: 'Jane Smith',
-          tenancy: 'CleanPro',
-          amount: 180,
-          type: 'payment',
-          status: 'completed',
-          createdAt: '2024-01-24T09:15:00Z'
-        },
-        {
-          id: 'REF-001',
-          customer: 'Mike Johnson',
-          tenancy: 'LaundryMax',
-          amount: 75,
-          type: 'refund',
-          status: 'pending',
-          createdAt: '2024-01-24T08:45:00Z'
-        }
-      ])
-
+      setRecentTransactions(d.recentTransactions ?? [])
+    } catch {
+      setError('Failed to load finance data')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }
+
+  useEffect(() => {
+    fetchFinanceData()
   }, [])
 
   const getStatusColor = (status: string) => {
@@ -165,6 +130,14 @@ export default function FinanceDashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchFinanceData} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -356,31 +329,31 @@ export default function FinanceDashboardPage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button onClick={() => toast('Feature coming soon')} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <Receipt className="w-6 h-6 text-green-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Generate Report</p>
               <p className="text-xs text-gray-500">Financial reports</p>
             </div>
           </button>
-          
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+
+          <button onClick={() => toast('Feature coming soon')} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <RefreshCw className="w-6 h-6 text-orange-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Process Refunds</p>
               <p className="text-xs text-gray-500">Pending refunds</p>
             </div>
           </button>
-          
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+
+          <button onClick={() => toast('Feature coming soon')} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <Search className="w-6 h-6 text-blue-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Transaction Search</p>
               <p className="text-xs text-gray-500">Find transactions</p>
             </div>
           </button>
-          
-          <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+
+          <button onClick={() => toast('Feature coming soon')} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <BarChart3 className="w-6 h-6 text-purple-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Analytics</p>

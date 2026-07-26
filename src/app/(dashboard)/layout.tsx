@@ -65,6 +65,24 @@ export default function DashboardLayout({
         router.push('/sales-dashboard')
         return
       }
+      if (userType === 'auditor') {
+        router.push('/audit-dashboard')
+        return
+      }
+      if (userType === 'finance') {
+        router.push('/finance-dashboard')
+        return
+      }
+      if (userType === 'support') {
+        router.push('/support-dashboard')
+        return
+      }
+
+      // Catch-all: unknown roles should not silently get superadmin access
+      if (!['superadmin', 'admin'].includes(user?.role) && !user?.role?.includes('superadmin')) {
+        router.push('/auth/login')
+        return
+      }
 
       // console.log('🔄 Layout - User type is:', userType, '- proceeding with token validation')
 

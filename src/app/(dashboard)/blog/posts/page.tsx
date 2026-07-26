@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   Plus, 
   Search, 
@@ -64,6 +65,9 @@ export default function BlogPostsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalPosts, setTotalPosts] = useState(0)
+  const [totalPublished, setTotalPublished] = useState(0)
+  const [totalDrafts, setTotalDrafts] = useState(0)
+  const [totalViews, setTotalViews] = useState(0)
 
   const fetchPosts = async () => {
     try {
@@ -75,11 +79,22 @@ export default function BlogPostsPage() {
         ...(statusFilter && { status: statusFilter }),
         ...(categoryFilter && { category: categoryFilter })
       }
-      
+
       const response = await superAdminApi.getBlogPosts(params)
       setPosts(response.data || [])
       setTotalPages(response.pagination?.pages || 1)
       setTotalPosts(response.pagination?.total || 0)
+
+      // Fetch total counts per status from the API (unfiltered by status)
+      const [publishedRes, draftRes, allRes] = await Promise.allSettled([
+        superAdminApi.getBlogPosts({ status: 'published', limit: 1 }),
+        superAdminApi.getBlogPosts({ status: 'draft', limit: 1 }),
+        superAdminApi.getBlogPosts({ limit: 1 })
+      ])
+      if (publishedRes.status === 'fulfilled') setTotalPublished(publishedRes.value.pagination?.total || 0)
+      if (draftRes.status === 'fulfilled') setTotalDrafts(draftRes.value.pagination?.total || 0)
+      // Total views: sum viewCount from all posts fetched so far (approximation from current page)
+      setTotalViews((response.data || []).reduce((sum: number, p: any) => sum + (p.viewCount || 0), 0))
     } catch (err: any) {
       setError(err.message || 'Failed to fetch blog posts')
     } finally {
@@ -105,13 +120,12 @@ export default function BlogPostsPage() {
   }, [currentPage, searchTerm, statusFilter, categoryFilter])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this blog post?')) return
-    
     try {
       await superAdminApi.deleteBlogPost(id)
-      fetchPosts() // Refresh the list
+      toast.success('Blog post deleted')
+      fetchPosts()
     } catch (err: any) {
-      alert(err.message || 'Failed to delete blog post')
+      toast.error(err.message || 'Failed to delete blog post')
     }
   }
 
@@ -247,7 +261,7 @@ export default function BlogPostsPage() {
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Published</p>
               <p className="text-2xl font-bold text-gray-900">
-                {posts.filter(p => p.status === 'published').length}
+                {totalPublished}
               </p>
             </div>
           </div>
@@ -261,7 +275,7 @@ export default function BlogPostsPage() {
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Drafts</p>
               <p className="text-2xl font-bold text-gray-900">
-                {posts.filter(p => p.status === 'draft').length}
+                {totalDrafts}
               </p>
             </div>
           </div>
@@ -275,7 +289,7 @@ export default function BlogPostsPage() {
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Total Views</p>
               <p className="text-2xl font-bold text-gray-900">
-                {posts.reduce((sum, p) => sum + p.viewCount, 0)}
+                {totalViews}
               </p>
             </div>
           </div>

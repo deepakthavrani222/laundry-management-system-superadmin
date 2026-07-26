@@ -80,10 +80,6 @@ export default function SubdomainsPage() {
   };
 
   const removeSubdomain = async (subdomain: string) => {
-    if (!confirm(`Are you sure you want to remove ${subdomain}.laundrylobby.com?`)) {
-      return;
-    }
-
     try {
       const response = await superAdminApi.delete(`/subdomains/${subdomain}`);
       

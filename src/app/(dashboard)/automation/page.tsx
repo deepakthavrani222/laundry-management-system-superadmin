@@ -103,10 +103,6 @@ export default function SuperAdminAutomationPage() {
   };
 
   const handleDeleteRule = async (ruleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this automation rule? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       await superAdminAutomationApi.deleteRule(ruleId);
       toast.success('Rule deleted successfully');
@@ -255,7 +251,7 @@ export default function SuperAdminAutomationPage() {
           <p className="text-gray-600">Manage platform-wide and tenant automation rules</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => toast('Settings coming soon')}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -406,9 +402,9 @@ export default function SuperAdminAutomationPage() {
               <CardTitle>Automation Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>Detailed analytics and insights coming soon...</p>
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <p className="text-sm font-medium">Analytics coming soon</p>
+                <p className="text-xs mt-1">Automation insights will appear here once available.</p>
               </div>
             </CardContent>
           </Card>

@@ -17,11 +17,9 @@ import {
   DollarSign,
   Target
 } from 'lucide-react'
-import axios from 'axios'
 import CreateSalesUserModal from '@/components/sales/CreateSalesUserModal'
-import { useSuperAdminStore } from '@/store/superAdminStore'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 
 interface SalesUser {
   _id: string
@@ -57,7 +55,6 @@ interface Stats {
 }
 
 export default function SalesUsersPage() {
-  const { token } = useSuperAdminStore()
   const [salesUsers, setSalesUsers] = useState<SalesUser[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -66,28 +63,14 @@ export default function SalesUsersPage() {
   const [selectedUser, setSelectedUser] = useState<SalesUser | null>(null)
 
   useEffect(() => {
-    if (token) {
-      fetchSalesUsers()
-      fetchStats()
-    } else {
-      setLoading(false)
-    }
-  }, [token])
+    fetchSalesUsers()
+    fetchStats()
+  }, [])
 
   const fetchSalesUsers = async () => {
     try {
-      if (!token) {
-        console.log('No token available')
-        setLoading(false)
-        return
-      }
-      
-      const response = await axios.get(`${API_URL}/superadmin/sales-users`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { search }
-      })
-      
-      if (response.data && response.data.data && response.data.data.salesUsers) {
+      const response = await api.get('/superadmin/sales-users', { params: { search } })
+      if (response.data?.data?.salesUsers) {
         setSalesUsers(response.data.data.salesUsers)
       } else {
         setSalesUsers([])
@@ -95,7 +78,7 @@ export default function SalesUsersPage() {
     } catch (error: any) {
       console.error('Error fetching sales users:', error)
       if (error.response?.status === 401) {
-        alert('Session expired. Please login again.')
+        toast.error('Session expired. Please login again.')
       }
       setSalesUsers([])
     } finally {
@@ -105,13 +88,8 @@ export default function SalesUsersPage() {
 
   const fetchStats = async () => {
     try {
-      if (!token) return
-      
-      const response = await axios.get(`${API_URL}/superadmin/sales-users/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      
-      if (response.data && response.data.data) {
+      const response = await api.get('/superadmin/sales-users/stats')
+      if (response.data?.data) {
         setStats(response.data.data)
       }
     } catch (error: any) {
@@ -122,11 +100,7 @@ export default function SalesUsersPage() {
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
       const endpoint = currentStatus ? 'deactivate' : 'activate'
-      await axios.post(
-        `${API_URL}/superadmin/sales-users/${userId}/${endpoint}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      await api.post(`/superadmin/sales-users/${userId}/${endpoint}`)
       fetchSalesUsers()
       fetchStats()
     } catch (error) {
@@ -135,16 +109,12 @@ export default function SalesUsersPage() {
   }
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this sales user?')) return
-
     try {
-      await axios.delete(`${API_URL}/superadmin/sales-users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.delete(`/superadmin/sales-users/${userId}`)
       fetchSalesUsers()
       fetchStats()
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error deleting user')
+      toast.error(error.response?.data?.message || 'Error deleting user')
     }
   }
 

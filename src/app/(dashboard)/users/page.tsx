@@ -15,6 +15,8 @@ import {
   Eye
 } from 'lucide-react'
 import Link from 'next/link'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 
 interface Role {
   _id: string
@@ -41,20 +43,12 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
   // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('auth-storage')
-        if (!token) throw new Error('No auth token found')
-
-        const parsed = JSON.parse(token)
-        const authToken = parsed.state?.token
-        if (!authToken) throw new Error('Invalid auth token')
-
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-
         const queryParams = new URLSearchParams({
           page: '1',
           limit: '50',
@@ -63,18 +57,8 @@ export default function UsersPage() {
           ...(filterStatus && { isActive: filterStatus })
         })
 
-        const response = await fetch(`${API_URL}/superadmin/rbac/users?${queryParams}`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch users')
-        }
-
-        const data = await response.json()
+        const response = await api.get(`/superadmin/rbac/users?${queryParams}`)
+        const data = response.data
         if (data.success) {
           setUsers(data.data.users)
         } else {
@@ -92,36 +76,13 @@ export default function UsersPage() {
   }, [searchTerm, filterRole, filterStatus])
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
-
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) throw new Error('No auth token found')
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) throw new Error('Invalid auth token')
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-
-      const response = await fetch(`${API_URL}/superadmin/rbac/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to delete user')
-      }
-
-      // Remove user from list
+      await api.delete(`/superadmin/rbac/users/${userId}`)
       setUsers(prev => prev.filter(user => user._id !== userId))
+      toast.success('User deleted')
     } catch (error) {
       console.error('Error deleting user:', error)
-      alert(error instanceof Error ? error.message : 'Failed to delete user')
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user')
     }
   }
 
@@ -294,28 +255,32 @@ export default function UsersPage() {
                     </div>
 
                     <div className="relative">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === user._id ? null : user._id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
                         <MoreHorizontal className="w-5 h-5 text-gray-600" />
                       </button>
 
-                      {/* Dropdown menu would go here */}
-                      <div className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                        <Link href={`/users/${user._id}`} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </Link>
-                        <Link href={`/users/${user._id}/edit`} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit User
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete User
-                        </button>
-                      </div>
+                      {openMenuId === user._id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                          <Link href={`/users/${user._id}`} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </Link>
+                          <Link href={`/users/${user._id}/edit`} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit User
+                          </Link>
+                          <button
+                            onClick={() => { handleDeleteUser(user._id); setOpenMenuId(null) }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete User
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

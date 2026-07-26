@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Activity, User, Clock, StopCircle, AlertTriangle, RefreshCw } from 'lucide-react'
+import toast from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface ActiveSession {
   sessionId: string
@@ -33,27 +35,8 @@ export default function ActiveImpersonationSessionsPage() {
   const fetchActiveSessions = async (showRefreshing = false) => {
     try {
       if (showRefreshing) setRefreshing(true)
-      
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/impersonation/active', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setActiveSessions(data.data || [])
-      } else {
-        console.error('Failed to fetch active sessions')
-      }
+      const response = await api.get('/support/impersonation/active')
+      setActiveSessions(response.data?.data || [])
     } catch (error) {
       console.error('Error fetching active sessions:', error)
     } finally {
@@ -64,32 +47,12 @@ export default function ActiveImpersonationSessionsPage() {
 
   const endImpersonation = async (sessionId: string) => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/impersonation/end', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ sessionId })
-      })
-
-      if (response.ok) {
-        alert('Impersonation session ended successfully')
-        fetchActiveSessions()
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Failed to end impersonation')
-      }
-    } catch (error) {
+      await api.post('/support/impersonation/end', { sessionId })
+      toast.success('Impersonation session ended successfully')
+      fetchActiveSessions()
+    } catch (error: any) {
       console.error('Error ending impersonation:', error)
-      alert('Failed to end impersonation')
+      toast.error(error.response?.data?.message || 'Failed to end impersonation')
     }
   }
 

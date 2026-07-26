@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import {
   AlertTriangle,
@@ -47,6 +46,7 @@ interface RefundAbuseReport {
 export default function RefundAbuseDetectionPage() {
   const [reports, setReports] = useState<RefundAbuseReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPattern, setSelectedPattern] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -91,165 +91,9 @@ export default function RefundAbuseDetectionPage() {
 
     } catch (error) {
       console.error('Error fetching refund abuse reports:', error)
-      // Fallback to mock data
-      const mockReports: RefundAbuseReport[] = [
-        {
-          _id: '1',
-          reportId: 'RA-2024-001',
-          tenantId: 'tenant_001',
-          tenantName: 'SparkleWash Laundry Co.',
-          customerEmail: 'priya.sharma@email.com',
-          customerName: 'Priya Sharma',
-          totalRefunds: 14,
-          totalRefundAmount: 8750,
-          refundRate: 72.4,
-          avgOrderValue: 850,
-          avgRefundValue: 625,
-          flaggedOrders: [
-            { orderId: 'ORD-10234', amount: 950, reason: 'Clothes damaged - color bleeding', date: '2024-01-15' },
-            { orderId: 'ORD-10312', amount: 780, reason: 'Clothes damaged - shrinkage', date: '2024-01-22' },
-            { orderId: 'ORD-10398', amount: 1200, reason: 'Clothes damaged - torn fabric', date: '2024-01-28' },
-            { orderId: 'ORD-10456', amount: 650, reason: 'Clothes damaged - color bleeding', date: '2024-02-03' },
-            { orderId: 'ORD-10521', amount: 890, reason: 'Clothes damaged - stains not removed', date: '2024-02-10' }
-          ],
-          riskScore: 9,
-          pattern: 'frequent_refunds',
-          status: 'confirmed_abuse',
-          detectedAt: '2024-02-12T10:30:00Z',
-          lastRefundDate: '2024-02-10T14:20:00Z'
-        },
-        {
-          _id: '2',
-          reportId: 'RA-2024-002',
-          tenantId: 'tenant_002',
-          tenantName: 'FreshFold Express',
-          customerEmail: 'rajesh.kumar@email.com',
-          customerName: 'Rajesh Kumar',
-          totalRefunds: 6,
-          totalRefundAmount: 15200,
-          refundRate: 45.8,
-          avgOrderValue: 2800,
-          avgRefundValue: 2533,
-          flaggedOrders: [
-            { orderId: 'ORD-20145', amount: 3500, reason: 'Premium suit ruined - wrong chemical used', date: '2024-01-10' },
-            { orderId: 'ORD-20289', amount: 4200, reason: 'Silk saree damaged beyond repair', date: '2024-01-25' },
-            { orderId: 'ORD-20356', amount: 2800, reason: 'Leather jacket discolored', date: '2024-02-05' }
-          ],
-          riskScore: 8,
-          pattern: 'high_value',
-          status: 'investigating',
-          detectedAt: '2024-02-08T16:45:00Z',
-          lastRefundDate: '2024-02-05T09:15:00Z'
-        },
-        {
-          _id: '3',
-          reportId: 'RA-2024-003',
-          tenantId: 'tenant_003',
-          tenantName: 'CleanStar Laundromat',
-          customerEmail: 'anita.desai@email.com',
-          customerName: 'Anita Desai',
-          totalRefunds: 9,
-          totalRefundAmount: 5400,
-          refundRate: 60.0,
-          avgOrderValue: 720,
-          avgRefundValue: 600,
-          flaggedOrders: [
-            { orderId: 'ORD-30102', amount: 600, reason: 'Items missing from order', date: '2024-01-08' },
-            { orderId: 'ORD-30198', amount: 600, reason: 'Items missing from order', date: '2024-01-18' },
-            { orderId: 'ORD-30267', amount: 600, reason: 'Items missing from order', date: '2024-01-28' },
-            { orderId: 'ORD-30345', amount: 600, reason: 'Items missing from order', date: '2024-02-07' }
-          ],
-          riskScore: 7,
-          pattern: 'same_reason',
-          status: 'flagged',
-          detectedAt: '2024-02-09T08:20:00Z',
-          lastRefundDate: '2024-02-07T11:30:00Z'
-        },
-        {
-          _id: '4',
-          reportId: 'RA-2024-004',
-          tenantId: 'tenant_001',
-          tenantName: 'SparkleWash Laundry Co.',
-          customerEmail: 'vikram.patel@email.com',
-          customerName: 'Vikram Patel',
-          totalRefunds: 5,
-          totalRefundAmount: 3200,
-          refundRate: 38.5,
-          avgOrderValue: 900,
-          avgRefundValue: 640,
-          flaggedOrders: [
-            { orderId: 'ORD-10567', amount: 750, reason: 'Delivery delayed - clothes needed urgently', date: '2024-01-12' },
-            { orderId: 'ORD-10634', amount: 680, reason: 'Wrong items delivered', date: '2024-01-20' },
-            { orderId: 'ORD-10712', amount: 820, reason: 'Clothes not properly ironed', date: '2024-02-01' }
-          ],
-          riskScore: 5,
-          pattern: 'timing_pattern',
-          status: 'false_positive',
-          detectedAt: '2024-02-04T12:10:00Z',
-          lastRefundDate: '2024-02-01T17:45:00Z'
-        },
-        {
-          _id: '5',
-          reportId: 'RA-2024-005',
-          tenantId: 'tenant_004',
-          tenantName: 'QuickDry Services',
-          customerEmail: 'meena.reddy@email.com',
-          customerName: 'Meena Reddy',
-          totalRefunds: 11,
-          totalRefundAmount: 9800,
-          refundRate: 55.0,
-          avgOrderValue: 1100,
-          avgRefundValue: 891,
-          flaggedOrders: [
-            { orderId: 'ORD-40089', amount: 1100, reason: 'Clothes damaged - bleach marks', date: '2024-01-05' },
-            { orderId: 'ORD-40145', amount: 950, reason: 'Clothes damaged - burn marks from iron', date: '2024-01-14' },
-            { orderId: 'ORD-40223', amount: 1300, reason: 'Entire order lost', date: '2024-01-23' },
-            { orderId: 'ORD-40301', amount: 800, reason: 'Clothes damaged - color fading', date: '2024-02-02' }
-          ],
-          riskScore: 8,
-          pattern: 'cross_account',
-          status: 'investigating',
-          detectedAt: '2024-02-06T14:55:00Z',
-          lastRefundDate: '2024-02-02T10:20:00Z'
-        },
-        {
-          _id: '6',
-          reportId: 'RA-2024-006',
-          tenantId: 'tenant_002',
-          tenantName: 'FreshFold Express',
-          customerEmail: 'suresh.nair@email.com',
-          customerName: 'Suresh Nair',
-          totalRefunds: 8,
-          totalRefundAmount: 4600,
-          refundRate: 50.0,
-          avgOrderValue: 750,
-          avgRefundValue: 575,
-          flaggedOrders: [
-            { orderId: 'ORD-20401', amount: 650, reason: 'Clothes smell bad after wash', date: '2024-01-11' },
-            { orderId: 'ORD-20478', amount: 550, reason: 'Stains not removed properly', date: '2024-01-19' },
-            { orderId: 'ORD-20534', amount: 700, reason: 'Clothes returned damp', date: '2024-01-27' },
-            { orderId: 'ORD-20612', amount: 600, reason: 'Wrong detergent used - allergic reaction', date: '2024-02-04' }
-          ],
-          riskScore: 6,
-          pattern: 'frequent_refunds',
-          status: 'resolved',
-          detectedAt: '2024-02-05T09:30:00Z',
-          lastRefundDate: '2024-02-04T13:00:00Z'
-        }
-      ]
-
-      const mockStats = {
-        totalFlagged: 156,
-        confirmedAbuse: 34,
-        underInvestigation: 47,
-        totalRefundAmountAtRisk: 284500,
-        avgRiskScore: 6.8,
-        falsePositiveRate: 18.5
-      }
-
-      setReports(mockReports)
-      setStats(mockStats)
-      setTotalPages(3)
+      setError('Failed to load refund abuse reports. Please try again.')
+      setReports([])
+      setTotalPages(1)
     } finally {
       setLoading(false)
     }
@@ -349,6 +193,14 @@ export default function RefundAbuseDetectionPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchRefundAbuseReports} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 via-orange-600 to-yellow-500 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">

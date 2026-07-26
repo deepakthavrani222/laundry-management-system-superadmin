@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { getAuthToken } from '@/lib/authUtils';
 
 // Socket connects to relay server, API calls go to backend
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -47,22 +48,7 @@ export const useNotificationsWebSocket = () => {
 
   // Get auth token
   const getToken = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      // Try zustand persist format first
-      const authData = localStorage.getItem('superadmin-auth');
-      if (authData) {
-        try {
-          const parsed = JSON.parse(authData);
-          const token = parsed.state?.token || parsed.token;
-          if (token) return token;
-        } catch (e) {
-          // console.error('Error parsing auth data:', e);
-        }
-      }
-      // Fallback to direct token
-      return localStorage.getItem('token');
-    }
-    return null;
+    return getAuthToken();
   }, []);
 
   // Play notification sound

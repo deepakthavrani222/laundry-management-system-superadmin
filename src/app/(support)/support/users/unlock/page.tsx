@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import { 
   Unlock,
   Search,
@@ -182,14 +183,14 @@ export default function UnlockAccountsPage() {
       const data = response.data
       if (data?.success) {
         await loadLockedAccounts()
-        alert(`Account ${action}ed successfully`)
+        toast.success(`Account ${action}ed successfully`)
       } else {
         throw new Error(data?.message || `Failed to ${action} account`)
       }
     } catch (err: any) {
       console.error(`Error ${action}ing account:`, err)
       const msg = err?.response?.data?.message || err?.message || `Failed to ${action} account`
-      alert(msg)
+      toast.error(msg)
     }
   }
 

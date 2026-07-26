@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Clock, 
-  Users, 
+import {
+  BarChart3,
+  TrendingUp,
+  Clock,
+  Users,
   Activity,
   RefreshCw,
   AlertTriangle,
@@ -15,8 +15,11 @@ import {
   Eye,
   Send,
   Calendar,
-  Download
+  Download,
+  Bell
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface NotificationStats {
   overview: {
@@ -74,77 +77,49 @@ export default function NotificationStatsPage() {
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<string>('7d')
   const [activeTab, setActiveTab] = useState<'overview' | 'priority' | 'channels' | 'engagement'>('overview')
+  const [unreadCount, setUnreadCount] = useState<number | null>(null)
 
-  // Mock data - replace with actual API calls
-  useEffect(() => {
-    const mockStats: NotificationStats = {
-      overview: {
-        totalSent: 12450,
-        totalDelivered: 11890,
-        totalFailed: 560,
-        averageResponseTime: 245,
-        deliveryRate: 95.5,
-        readRate: 78.2
-      },
-      priorityBreakdown: {
-        P0: { sent: 45, delivered: 44, failed: 1, avgResponseTime: 120 },
-        P1: { sent: 890, delivered: 875, failed: 15, avgResponseTime: 180 },
-        P2: { sent: 5670, delivered: 5450, failed: 220, avgResponseTime: 250 },
-        P3: { sent: 4890, delivered: 4680, failed: 210, avgResponseTime: 300 },
-        P4: { sent: 955, delivered: 841, failed: 114, avgResponseTime: 400 }
-      },
-      channelPerformance: {
-        websocket: { sent: 8900, delivered: 8750, failed: 150, avgResponseTime: 180 },
-        email: { sent: 2100, delivered: 1980, failed: 120, avgResponseTime: 2500 },
-        sms: { sent: 890, delivered: 720, failed: 170, avgResponseTime: 1200 },
-        push: { sent: 560, delivered: 440, failed: 120, avgResponseTime: 800 }
-      },
-      timeSeriesData: [
-        { timestamp: '2024-01-23', sent: 1200, delivered: 1150, failed: 50 },
-        { timestamp: '2024-01-24', sent: 1350, delivered: 1290, failed: 60 },
-        { timestamp: '2024-01-25', sent: 1100, delivered: 1050, failed: 50 },
-        { timestamp: '2024-01-26', sent: 1450, delivered: 1380, failed: 70 },
-        { timestamp: '2024-01-27', sent: 1600, delivered: 1520, failed: 80 },
-        { timestamp: '2024-01-28', sent: 1750, delivered: 1670, failed: 80 },
-        { timestamp: '2024-01-29', sent: 2000, delivered: 1830, failed: 170 }
-      ],
-      userEngagement: {
-        totalUsers: 2450,
-        activeUsers: 1890,
-        engagementRate: 77.1,
-        averageReadTime: 45
-      }
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get('/superadmin/notifications/unread-count')
+      const count = res.data?.count ?? res.data?.data?.count ?? null
+      setUnreadCount(typeof count === 'number' ? count : null)
+    } catch {
+      setUnreadCount(null)
     }
+  }
 
-    setTimeout(() => {
-      setStats(mockStats)
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      await fetchUnreadCount()
+      // No /stats endpoint — leave stats null and show placeholder values
+      setStats(null)
       setLoading(false)
-    }, 1000)
+    }
+    load()
   }, [timeRange])
 
-  const refreshStats = () => {
+  const refreshStats = async () => {
     setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
+    await fetchUnreadCount()
+    setLoading(false)
   }
 
   const exportStats = () => {
-    // Implementation for exporting stats
-    console.log('Exporting stats...')
+    toast('Export not yet supported')
   }
 
-  if (loading || !stats) {
+  const calculatePercentage = (value: number, total: number) => {
+    return total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
+  }
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     )
-  }
-
-  const calculatePercentage = (value: number, total: number) => {
-    return total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
   }
 
   return (
@@ -189,7 +164,7 @@ export default function NotificationStatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Sent</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.overview.totalSent.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-400">N/A</p>
             </div>
             <Send className="w-8 h-8 text-blue-600" />
           </div>
@@ -199,7 +174,7 @@ export default function NotificationStatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Delivered</p>
-              <p className="text-2xl font-bold text-green-600">{stats.overview.totalDelivered.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-400">N/A</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
@@ -209,7 +184,7 @@ export default function NotificationStatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Failed</p>
-              <p className="text-2xl font-bold text-red-600">{stats.overview.totalFailed.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-400">N/A</p>
             </div>
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
@@ -219,7 +194,7 @@ export default function NotificationStatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Delivery Rate</p>
-              <p className="text-2xl font-bold text-green-600">{stats.overview.deliveryRate}%</p>
+              <p className="text-2xl font-bold text-gray-400">N/A</p>
             </div>
             <Target className="w-8 h-8 text-green-600" />
           </div>
@@ -229,7 +204,7 @@ export default function NotificationStatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Read Rate</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.overview.readRate}%</p>
+              <p className="text-2xl font-bold text-gray-400">N/A</p>
             </div>
             <Eye className="w-8 h-8 text-purple-600" />
           </div>
@@ -238,10 +213,12 @@ export default function NotificationStatsPage() {
         <div className="bg-white p-6 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Response</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.overview.averageResponseTime}ms</p>
+              <p className="text-sm font-medium text-gray-600">Unread</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {unreadCount !== null ? unreadCount : 'N/A'}
+              </p>
             </div>
-            <Zap className="w-8 h-8 text-orange-600" />
+            <Bell className="w-8 h-8 text-orange-600" />
           </div>
         </div>
       </div>
@@ -282,10 +259,8 @@ export default function NotificationStatsPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Volume Trend</h3>
               <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">Chart visualization would go here</p>
-                  <p className="text-sm text-gray-400">Integration with charting library needed</p>
+                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                  Chart coming soon
                 </div>
               </div>
             </div>
@@ -294,10 +269,8 @@ export default function NotificationStatsPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Success Rate Over Time</h3>
               <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">Success rate chart would go here</p>
-                  <p className="text-sm text-gray-400">Shows delivery and read rates</p>
+                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                  Chart coming soon
                 </div>
               </div>
             </div>
@@ -306,54 +279,17 @@ export default function NotificationStatsPage() {
 
         {activeTab === 'priority' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Priority Breakdown Table */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Priority Level Performance</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.priorityBreakdown).map(([priority, data]) => {
-                  const config = priorityConfig[priority as keyof typeof priorityConfig]
-                  const successRate = calculatePercentage(data.delivered, data.sent)
-                  
-                  return (
-                    <div key={priority} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <span className={`px-3 py-1 text-sm font-medium rounded-full bg-${config.color}-100 text-${config.color}-800`}>
-                          {priority}
-                        </span>
-                        <span className="ml-3 font-medium">{config.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{data.sent} sent</div>
-                        <div className="text-xs text-gray-500">{successRate}% success</div>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
 
-            {/* Priority Response Times */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Average Response Times</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.priorityBreakdown).map(([priority, data]) => {
-                  const config = priorityConfig[priority as keyof typeof priorityConfig]
-                  
-                  return (
-                    <div key={priority} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full bg-${config.color}-100 text-${config.color}-800`}>
-                          {priority}
-                        </span>
-                        <span className="ml-2 text-sm">{config.name}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 text-gray-400 mr-1" />
-                        <span className="text-sm font-medium">{data.avgResponseTime}ms</span>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
           </div>
@@ -361,52 +297,17 @@ export default function NotificationStatsPage() {
 
         {activeTab === 'channels' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Channel Performance Table */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Channel Performance</h3>
-              <div className="space-y-4">
-                {Object.entries(stats.channelPerformance).map(([channel, data]) => {
-                  const config = channelConfig[channel as keyof typeof channelConfig]
-                  const successRate = calculatePercentage(data.delivered, data.sent)
-                  const failureRate = calculatePercentage(data.failed, data.sent)
-                  
-                  return (
-                    <div key={channel} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`px-3 py-1 text-sm font-medium rounded-full bg-${config.color}-100 text-${config.color}-800`}>
-                          {config.name}
-                        </span>
-                        <span className="text-sm font-medium">{data.sent} sent</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">Success:</span>
-                          <span className="ml-1 font-medium text-green-600">{successRate}%</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Failed:</span>
-                          <span className="ml-1 font-medium text-red-600">{failureRate}%</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Avg Time:</span>
-                          <span className="ml-1 font-medium">{data.avgResponseTime}ms</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
 
-            {/* Channel Comparison Chart Placeholder */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Channel Comparison</h3>
-              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <Activity className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">Channel comparison chart would go here</p>
-                  <p className="text-sm text-gray-400">Shows success rates by channel</p>
-                </div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
           </div>
@@ -414,53 +315,17 @@ export default function NotificationStatsPage() {
 
         {activeTab === 'engagement' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* User Engagement Stats */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">User Engagement Metrics</h3>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.userEngagement.totalUsers.toLocaleString()}</p>
-                  </div>
-                  <Users className="w-8 h-8 text-gray-600" />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Users</p>
-                    <p className="text-2xl font-bold text-green-600">{stats.userEngagement.activeUsers.toLocaleString()}</p>
-                  </div>
-                  <Activity className="w-8 h-8 text-green-600" />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Engagement Rate</p>
-                    <p className="text-2xl font-bold text-blue-600">{stats.userEngagement.engagementRate}%</p>
-                  </div>
-                  <Target className="w-8 h-8 text-blue-600" />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Avg Read Time</p>
-                    <p className="text-2xl font-bold text-purple-600">{stats.userEngagement.averageReadTime}s</p>
-                  </div>
-                  <Clock className="w-8 h-8 text-purple-600" />
-                </div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
 
-            {/* Engagement Trends Placeholder */}
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Engagement Trends</h3>
-              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">Engagement trends chart would go here</p>
-                  <p className="text-sm text-gray-400">Shows user interaction over time</p>
-                </div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                Chart coming soon
               </div>
             </div>
           </div>
@@ -470,36 +335,8 @@ export default function NotificationStatsPage() {
       {/* Performance Insights */}
       <div className="bg-white p-6 rounded-lg border border-gray-200">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center mb-2">
-              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-              <span className="font-medium text-green-800">High Performance</span>
-            </div>
-            <p className="text-sm text-green-700">
-              WebSocket notifications have the highest delivery rate at 98.3% with fastest response times.
-            </p>
-          </div>
-
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center mb-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
-              <span className="font-medium text-yellow-800">Needs Attention</span>
-            </div>
-            <p className="text-sm text-yellow-700">
-              SMS delivery rate is below target at 80.9%. Consider reviewing SMS provider configuration.
-            </p>
-          </div>
-
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center mb-2">
-              <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="font-medium text-blue-800">Trending Up</span>
-            </div>
-            <p className="text-sm text-blue-700">
-              P0/P1 notifications show 95%+ delivery rate, indicating critical alerts are reaching users effectively.
-            </p>
-          </div>
+        <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
+          Detailed statistics not yet available from the backend
         </div>
       </div>
     </div>

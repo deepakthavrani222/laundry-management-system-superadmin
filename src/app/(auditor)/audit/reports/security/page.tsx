@@ -119,6 +119,7 @@ interface SecurityReport {
 export default function SecurityReportsPage() {
   const [reports, setReports] = useState<SecurityReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -163,134 +164,8 @@ export default function SecurityReportsPage() {
       
     } catch (error) {
       console.error('Error fetching security reports:', error)
-      // Fallback to mock data
-      const mockReports: SecurityReport[] = [
-        {
-          _id: '1',
-          reportId: 'SEC-RPT-2024-001',
-          title: 'Monthly Security Threat Analysis',
-          description: 'Comprehensive analysis of security threats, incidents, and vulnerabilities for January 2024',
-          reportType: 'threat_analysis',
-          period: {
-            startDate: new Date(2024, 0, 1),
-            endDate: new Date(2024, 0, 31)
-          },
-          generatedAt: new Date(),
-          generatedBy: 'security@laundrylobby.com',
-          status: 'published',
-          metrics: {
-            totalIncidents: 0,
-            criticalThreats: 12,
-            resolvedIncidents: 142,
-            averageResolutionTime: 4.2,
-            securityScore: 87.5,
-            complianceRate: 94.2
-          },
-          threatAnalysis: {
-            topThreats: [
-              { type: 'Brute Force Attacks', count: 45, severity: 'high', trend: 'decreasing' },
-              { type: 'SQL Injection Attempts', count: 23, severity: 'critical', trend: 'stable' },
-              { type: 'Cross-Site Scripting', count: 18, severity: 'medium', trend: 'increasing' },
-              { type: 'DDoS Attempts', count: 12, severity: 'high', trend: 'decreasing' }
-            ],
-            attackVectors: [
-              { vector: 'Web Application', attempts: 234, successRate: 2.1 },
-              { vector: 'API Endpoints', attempts: 0, successRate: 1.3 },
-              { vector: 'Login Forms', attempts: 89, successRate: 0.8 },
-              { vector: 'File Uploads', attempts: 45, successRate: 0.2 }
-            ],
-            geographicDistribution: [
-              { country: 'Unknown/VPN', threatCount: 89, riskLevel: 8 },
-              { country: 'China', threatCount: 67, riskLevel: 7 },
-              { country: 'Russia', threatCount: 45, riskLevel: 9 },
-              { country: 'USA', threatCount: 23, riskLevel: 3 }
-            ]
-          },
-          vulnerabilities: {
-            critical: 2,
-            high: 8,
-            medium: 15,
-            low: 23,
-            patched: 35,
-            pending: 13
-          },
-          incidents: {
-            total: 0,
-            byCategory: [
-              { category: 'Authentication', count: 45, avgImpact: 6.2 },
-              { category: 'Data Access', count: 34, avgImpact: 7.8 },
-              { category: 'System Integrity', count: 28, avgImpact: 5.4 },
-              { category: 'Network Security', count: 23, avgImpact: 4.9 },
-              { category: 'Application Security', count: 26, avgImpact: 6.1 }
-            ],
-            timeline: [
-              { date: new Date(2024, 0, 1), incidents: 12, severity: 'medium' },
-              { date: new Date(2024, 0, 8), incidents: 18, severity: 'high' },
-              { date: new Date(2024, 0, 15), incidents: 8, severity: 'low' },
-              { date: new Date(2024, 0, 22), incidents: 15, severity: 'medium' },
-              { date: new Date(2024, 0, 29), incidents: 6, severity: 'low' }
-            ]
-          },
-          recommendations: [
-            {
-              priority: 'critical',
-              title: 'Implement Advanced DDoS Protection',
-              description: 'Deploy enterprise-grade DDoS mitigation to handle increasing attack volumes',
-              impact: 'Prevents service disruption and maintains availability',
-              effort: 'Medium - 2-3 weeks implementation',
-              timeline: 'Immediate - within 30 days'
-            },
-            {
-              priority: 'high',
-              title: 'Enhanced API Rate Limiting',
-              description: 'Implement more granular rate limiting on API endpoints',
-              impact: 'Reduces automated attack success rate by 60%',
-              effort: 'Low - 1 week implementation',
-              timeline: 'Within 2 weeks'
-            },
-            {
-              priority: 'medium',
-              title: 'Security Awareness Training',
-              description: 'Conduct quarterly security training for all staff',
-              impact: 'Reduces human error incidents by 40%',
-              effort: 'Low - ongoing program',
-              timeline: 'Next quarter'
-            }
-          ],
-          compliance: [
-            {
-              framework: 'ISO 27001',
-              score: 94.2,
-              requirements: [
-                { requirement: 'Access Control', status: 'compliant', lastAudit: new Date(2024, 0, 15) },
-                { requirement: 'Incident Management', status: 'compliant', lastAudit: new Date(2024, 0, 15) },
-                { requirement: 'Risk Assessment', status: 'partial', lastAudit: new Date(2024, 0, 15) }
-              ]
-            },
-            {
-              framework: 'SOC 2 Type II',
-              score: 91.8,
-              requirements: [
-                { requirement: 'Security', status: 'compliant', lastAudit: new Date(2024, 0, 10) },
-                { requirement: 'Availability', status: 'compliant', lastAudit: new Date(2024, 0, 10) },
-                { requirement: 'Confidentiality', status: 'compliant', lastAudit: new Date(2024, 0, 10) }
-              ]
-            }
-          ]
-        }
-      ]
-
-      const mockStats = {
-        totalReports: 24,
-        publishedReports: 18,
-        criticalFindings: 45,
-        avgSecurityScore: 87.5,
-        complianceRate: 94.2,
-        trendsImproving: 78
-      }
-
-      setReports(mockReports)
-      setStats(mockStats)
+      setError('Failed to load security reports. Please try again.')
+      setReports([])
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -348,6 +223,14 @@ export default function SecurityReportsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchSecurityReports} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 via-pink-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
@@ -438,25 +321,8 @@ export default function SecurityReportsPage() {
             <TrendingUp className="w-5 h-5 mr-2 text-red-600" />
             Threat Trends Over Time
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={[
-                { month: 'Jan', threats: 0, incidents: 45, resolved: 42 },
-                { month: 'Feb', threats: 134, incidents: 38, resolved: 36 },
-                { month: 'Mar', threats: 178, incidents: 52, resolved: 48 },
-                { month: 'Apr', threats: 145, incidents: 41, resolved: 39 },
-                { month: 'May', threats: 123, incidents: 35, resolved: 34 },
-                { month: 'Jun', threats: 167, incidents: 47, resolved: 45 }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Area type="monotone" dataKey="threats" stackId="1" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
-                <Area type="monotone" dataKey="incidents" stackId="2" stroke="#F97316" fill="#F97316" fillOpacity={0.6} />
-                <Area type="monotone" dataKey="resolved" stackId="3" stroke="#22C55E" fill="#22C55E" fillOpacity={0.6} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center py-8 text-gray-500">Trend data not available</div>
           </div>
         </div>
 
@@ -466,31 +332,8 @@ export default function SecurityReportsPage() {
             <AlertTriangle className="w-5 h-5 mr-2 text-orange-600" />
             Vulnerability Distribution
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Critical', value: 2, color: '#EF4444' },
-                    { name: 'High', value: 8, color: '#F97316' },
-                    { name: 'Medium', value: 15, color: '#EAB308' },
-                    { name: 'Low', value: 23, color: '#22C55E' }
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {COLORS.map((color, index) => (
-                    <Cell key={`cell-${index}`} fill={color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center py-8 text-gray-500">Trend data not available</div>
           </div>
         </div>
       </div>
@@ -573,7 +416,7 @@ export default function SecurityReportsPage() {
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{report.title}</h3>
                   <p className="text-gray-600 text-sm">{report.description}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Period: {report.period.startDate.toLocaleDateString()} - {report.period.endDate.toLocaleDateString()}
+                    Period: {report.period.startDate ? new Date(report.period.startDate).toLocaleDateString() : '—'} - {report.period.endDate ? new Date(report.period.endDate).toLocaleDateString() : '—'}
                   </p>
                 </div>
 
@@ -665,7 +508,7 @@ export default function SecurityReportsPage() {
                 </button>
                 <div className="text-xs text-gray-500 text-right">
                   <div>Generated:</div>
-                  <div>{report.generatedAt.toLocaleDateString()}</div>
+                  <div>{report.generatedAt ? new Date(report.generatedAt).toLocaleDateString() : '—'}</div>
                   <div className="text-gray-400">by {report.generatedBy}</div>
                 </div>
               </div>

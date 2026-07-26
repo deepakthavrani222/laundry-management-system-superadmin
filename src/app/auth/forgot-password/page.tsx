@@ -3,16 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { 
-  Shield, 
-  Mail, 
+import {
+  Shield,
+  Mail,
   AlertCircle,
   CheckCircle,
   Loader2,
   ArrowLeft
 } from 'lucide-react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+import api from '@/lib/api'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -26,20 +25,7 @@ export default function ForgotPassword() {
     setError('')
 
     try {
-      const response = await fetch(`${API_URL}/superadmin/auth/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send reset email')
-      }
-
+      await api.post('/superadmin/auth/forgot-password', { email })
       setSuccess(true)
     } catch (error: any) {
       setError(error.message)

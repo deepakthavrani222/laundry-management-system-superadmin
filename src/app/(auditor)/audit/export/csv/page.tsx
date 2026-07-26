@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   Download,
   FileText,
@@ -35,6 +36,7 @@ interface CSVExportRequest {
 }
 
 export default function CSVExportPage() {
+  const { user } = useAuthStore()
   const [exportRequests, setExportRequests] = useState<CSVExportRequest[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedType, setSelectedType] = useState<string>('audit-logs')
@@ -118,23 +120,22 @@ export default function CSVExportPage() {
           watermark: data.data.watermark,
           filename: data.data.filename,
           recordCount: data.data.recordCount,
-          requestedBy: 'auditor@laundrylobby.com',
+          requestedBy: user?.email || 'auditor@laundrylobby.com',
           requestedAt: new Date(),
           downloadUrl: data.data.downloadUrl,
           expiresAt: new Date(data.data.expiresAt)
         }
-        
+
         setExportRequests(prev => [newExport, ...prev])
-        
-        // Show success message
-        alert(`CSV export request submitted successfully. Watermark: ${data.data.watermark}`)
+
+        toast.success(`CSV export requested. Watermark: ${data.data.watermark}`)
       } else {
         throw new Error(data.message || 'Failed to request CSV export')
       }
-      
+
     } catch (error) {
       console.error('Error requesting CSV export:', error)
-      alert('Failed to request CSV export. Please try again.')
+      toast.error('Failed to request CSV export. Please try again.')
     } finally {
       setLoading(false)
     }

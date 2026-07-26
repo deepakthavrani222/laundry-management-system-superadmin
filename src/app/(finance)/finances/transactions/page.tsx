@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   CreditCard,
   Search,
@@ -75,6 +76,7 @@ interface TransactionStats {
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState<TransactionStats | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -116,9 +118,10 @@ export default function TransactionsPage() {
         throw new Error(data.message || 'Failed to fetch transactions')
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching transactions:', error)
-      
+      setError(error?.response?.data?.message || 'Failed to load data')
+
       // Show empty state instead of mock data
       setTransactions([])
       setStats({
@@ -197,6 +200,12 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <span className="text-red-700 text-sm">{error}</span>
+          <button className="text-red-600 text-sm underline ml-4" onClick={() => { setError(null); fetchTransactions() }}>Retry</button>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
@@ -403,7 +412,7 @@ export default function TransactionsPage() {
             <option value="1y">Last Year</option>
           </select>
 
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center">
+          <button onClick={() => toast('Export coming soon')} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center">
             <Download className="w-4 h-4 mr-2" />
             Export
           </button>
@@ -498,7 +507,7 @@ export default function TransactionsPage() {
                     <div className="text-sm text-gray-500">{transaction.createdAt.toLocaleTimeString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="text-blue-600 hover:text-blue-800 p-2 rounded-md hover:bg-blue-50">
+                    <button onClick={() => toast('Details coming soon')} className="text-blue-600 hover:text-blue-800 p-2 rounded-md hover:bg-blue-50">
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>

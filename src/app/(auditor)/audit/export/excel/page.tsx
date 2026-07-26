@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import {
   BarChart3,
   Download,
@@ -39,6 +40,7 @@ interface ExportRequest {
 }
 
 export default function ExcelExportPage() {
+  const { user } = useAuthStore()
   const [exportRequests, setExportRequests] = useState<ExportRequest[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedType, setSelectedType] = useState<string>('financial')
@@ -173,7 +175,7 @@ export default function ExcelExportPage() {
           filename: data.data.filename,
           recordCount: data.data.recordCount,
           sheetCount: data.data.sheetCount || 1,
-          requestedBy: 'auditor@laundrylobby.com',
+          requestedBy: user?.email || 'auditor@laundrylobby.com',
           requestedAt: new Date(),
           downloadUrl: data.data.downloadUrl,
           expiresAt: new Date(data.data.expiresAt),
@@ -182,15 +184,14 @@ export default function ExcelExportPage() {
 
         setExportRequests(prev => [newExport, ...prev])
 
-        // Show success message
-        alert(`Excel export request submitted successfully. Watermark: ${data.data.watermark}`)
+        toast.success(`Excel export requested. Watermark: ${data.data.watermark}`)
       } else {
         throw new Error(data.message || 'Failed to request export')
       }
 
     } catch (error) {
       console.error('Error requesting export:', error)
-      alert('Failed to request export. Please try again.')
+      toast.error('Failed to request export. Please try again.')
     } finally {
       setLoading(false)
     }

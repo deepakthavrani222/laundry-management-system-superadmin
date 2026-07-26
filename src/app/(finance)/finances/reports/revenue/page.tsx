@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import { 
   BarChart3,
   Download,
@@ -113,14 +115,24 @@ export default function RevenueReportsPage() {
     }).format(amount)
   }
 
-  const generatePDFReport = () => {
-    // Implementation for PDF generation
-    console.log('Generating PDF report...')
+  const generatePDFReport = async () => {
+    const t = toast.loading('Generating PDF...')
+    try {
+      await api.post('/superadmin/financial/reports/generate', { type: 'pdf' })
+      toast.success('PDF report generated', { id: t })
+    } catch {
+      toast.error('Failed to generate PDF', { id: t })
+    }
   }
 
-  const exportToExcel = () => {
-    // Implementation for Excel export
-    console.log('Exporting to Excel...')
+  const exportToExcel = async () => {
+    const t = toast.loading('Exporting...')
+    try {
+      await api.post('/superadmin/financial/reports/generate', { type: 'excel' })
+      toast.success('Excel export ready', { id: t })
+    } catch {
+      toast.error('Export failed', { id: t })
+    }
   }
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4']
@@ -471,15 +483,15 @@ export default function RevenueReportsPage() {
             </div>
           </button>
           
-          <button className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button onClick={() => toast('Coming soon')} className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <RefreshCw className="w-6 h-6 text-blue-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Schedule Report</p>
               <p className="text-xs text-gray-500">Automated delivery</p>
             </div>
           </button>
-          
-          <button className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+
+          <button onClick={() => toast('Coming soon')} className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <Users className="w-6 h-6 text-purple-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Share Report</p>

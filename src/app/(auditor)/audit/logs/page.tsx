@@ -40,6 +40,7 @@ export default function AuditLogsPage() {
   const { token } = useAuthStore()
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSeverity, setSelectedSeverity] = useState('all')
   const [selectedAction, setSelectedAction] = useState('all')
@@ -79,41 +80,9 @@ export default function AuditLogsPage() {
       }
     } catch (error) {
       console.error('❌ Error fetching audit logs:', error)
-      console.log('🔧 API Error Details:', error.message)
-      
-      // Development mode: Show sample data for testing
-      const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
-      
-      if (isDevelopment) {
-        console.log('🔧 Development Mode: Loading sample audit logs for testing')
-        
-        // Generate sample audit logs with pagination
-        const sampleLogs: AuditLog[] = Array.from({ length: 20 }, (_, i) => ({
-          _id: `log_${page}_${i + 1}`,
-          timestamp: new Date(Date.now() - (i * 3600000)), // Each log 1 hour apart
-          who: ['admin@laundrylobby.com', 'auditor@laundrylobby.com', 'support@laundrylobby.com'][i % 3],
-          role: ['SuperAdmin', 'Auditor', 'Support'][i % 3],
-          action: ['CREATE_USER', 'UPDATE_TENANT', 'DELETE_ORDER', 'LOGIN_ATTEMPT', 'IMPERSONATE_USER'][i % 5],
-          entity: ['User', 'Tenancy', 'Order', 'Session', 'Permission'][i % 5],
-          entityId: `entity_${i + 1}`,
-          tenantId: i % 3 === 0 ? undefined : `tenant_${(i % 3) + 1}`,
-          tenantName: i % 3 === 0 ? 'Platform' : ['Clean Fresh', 'QuickWash', 'Express Laundry'][i % 3],
-          ipAddress: `192.168.1.${100 + (i % 50)}`,
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          outcome: ['success', 'failure', 'warning'][i % 3] as 'success' | 'failure' | 'warning',
-          details: { action: 'Sample audit log entry', timestamp: new Date() },
-          severity: ['low', 'medium', 'high', 'critical'][i % 4] as 'low' | 'medium' | 'high' | 'critical'
-        }))
-        
-        setLogs(sampleLogs)
-        setTotalPages(5) // Show 5 pages for testing pagination
-        
-        console.log('✅ Loaded sample audit logs for development:', sampleLogs.length, 'logs')
-      } else {
-        // Production mode: Show empty state
-        setLogs([])
-        setTotalPages(1)
-      }
+      setError('Failed to load audit logs. Please try again.')
+      setLogs([])
+      setTotalPages(1)
     } finally {
       setLoading(false)
     }
@@ -154,15 +123,18 @@ export default function AuditLogsPage() {
           </div>
           <div className="text-right">
             <p className="text-sm text-blue-100">Total Logs: {logs.length}</p>
-            {logs.length > 0 && (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') && (
-              <p className="text-xs text-yellow-200 bg-yellow-600/20 px-2 py-1 rounded mt-1">
-                🔧 {logs.some(l => l._id.startsWith('log_')) ? 'Development Sample Data' : 'Real Backend Data'}
-              </p>
-            )}
             <p className="text-xs text-blue-200">Page {page} of {totalPages}</p>
           </div>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4 mb-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchAuditLogs} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">

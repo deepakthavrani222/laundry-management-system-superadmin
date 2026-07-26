@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import { 
   Shield,
@@ -58,12 +57,12 @@ export default function RBACRolesPage() {
         ...(searchQuery && { search: searchQuery })
       })
 
-      const data = await superAdminApi.get(`/audit/rbac/permissions?${params}`)
-      
+      const data = await superAdminApi.get(`/audit/rbac/roles?${params}`)
+
       if (data.success) {
-        const rolesData = data.data?.data || data.data || []
+        const rolesData = data.data?.roles || data.data?.data || data.data || []
         setRoles(Array.isArray(rolesData) ? rolesData : [])
-        setTotalPages(Math.ceil((Array.isArray(rolesData) ? rolesData.length : 0) / 50))
+        setTotalPages(Math.ceil((data.data?.total || (Array.isArray(rolesData) ? rolesData.length : 0)) / 50))
       } else {
         throw new Error(data.message || 'Failed to fetch role definitions')
       }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSuperAdmin } from '@/store/authStore'
 import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import { 
   MessageSquare, 
   Search,
@@ -133,9 +134,21 @@ export default function ChatHistory() {
     })
   }
 
-  const exportChatHistory = () => {
-    // TODO: Implement export functionality
-    console.log('Exporting chat history...')
+  const exportChatHistory = async () => {
+    try {
+      toast.success('Exporting chat history...')
+      const { data } = await api.get('/support/chat/export', { params: { format: 'csv' } })
+      if (data.downloadUrl) {
+        const link = document.createElement('a')
+        link.href = data.downloadUrl
+        link.download = 'chat-history.csv'
+        link.click()
+      } else {
+        toast.success('Export requested — you will receive an email when ready')
+      }
+    } catch {
+      toast.error('Failed to export chat history')
+    }
   }
 
   if (loading) {

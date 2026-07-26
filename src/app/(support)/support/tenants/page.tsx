@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api'
 import { Building2, AlertTriangle, CheckCircle, Clock, TrendingUp, Users, Package, DollarSign } from 'lucide-react'
 
 interface TenantIssue {
@@ -42,24 +43,8 @@ export default function TenantSupportPage() {
   const fetchTenantIssues = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/tenant-heatmap', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setTenantIssues(data.data || [])
-      }
+      const response = await api.get('/support/tenant-heatmap')
+      setTenantIssues(response.data.data || [])
     } catch (error) {
       console.error('Error fetching tenant issues:', error)
     } finally {
@@ -69,30 +54,15 @@ export default function TenantSupportPage() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/stats', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.data) {
-          setStats({
-            totalTenants: data.data.totalUsers || 0,
-            activeTenants: data.data.activeUsers || 0,
-            issuesThisWeek: data.data.openTickets || 0,
-            avgResolutionTime: data.data.avgResponseTime || '0h'
-          })
-        }
+      const response = await api.get('/support/stats')
+      const data = response.data
+      if (data.data) {
+        setStats({
+          totalTenants: data.data.totalUsers || 0,
+          activeTenants: data.data.activeUsers || 0,
+          issuesThisWeek: data.data.openTickets || 0,
+          avgResolutionTime: data.data.avgResponseTime || '0h'
+        })
       }
     } catch (error) {
       console.error('Error fetching stats:', error)

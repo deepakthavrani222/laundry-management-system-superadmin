@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   AlertTriangle,
   Search,
@@ -69,6 +70,7 @@ interface FailureStats {
 export default function PaymentFailuresPage() {
   const [failures, setFailures] = useState<PaymentFailure[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState<FailureStats | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGateway, setSelectedGateway] = useState('all')
@@ -103,9 +105,10 @@ export default function PaymentFailuresPage() {
         throw new Error(data.message || 'Failed to fetch payment failures')
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching payment failures:', error)
-      
+      setError(error?.response?.data?.message || 'Failed to load data')
+
       // Show empty state instead of mock data
       setFailures([])
       setStats({
@@ -148,6 +151,12 @@ export default function PaymentFailuresPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <span className="text-red-700 text-sm">{error}</span>
+          <button className="text-red-600 text-sm underline ml-4" onClick={() => { setError(null); fetchPaymentFailures() }}>Retry</button>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 via-pink-600 to-rose-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
@@ -342,7 +351,7 @@ export default function PaymentFailuresPage() {
             <option value="1y">Last Year</option>
           </select>
 
-          <button className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors flex items-center">
+          <button onClick={() => toast('Export coming soon')} className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors flex items-center">
             <Download className="w-4 h-4 mr-2" />
             Export
           </button>
@@ -430,7 +439,7 @@ export default function PaymentFailuresPage() {
                     <div className="text-sm text-gray-500">{failure.createdAt.toLocaleTimeString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="text-blue-600 hover:text-blue-800 p-2 rounded-md hover:bg-blue-50">
+                    <button onClick={() => toast('Details coming soon')} className="text-blue-600 hover:text-blue-800 p-2 rounded-md hover:bg-blue-50">
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>

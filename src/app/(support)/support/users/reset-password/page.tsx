@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import { 
   Key,
   Search,
@@ -167,14 +168,14 @@ export default function ResetPasswordPage() {
       const data = response.data
       if (data?.success) {
         await loadPasswordResets()
-        alert(`Password reset ${action}ed successfully`)
+        toast.success(`Password reset ${action}ed successfully`)
       } else {
         throw new Error(data?.message || `Failed to ${action} password reset`)
       }
     } catch (err: any) {
       console.error(`Error ${action}ing password reset:`, err)
       const msg = err?.response?.data?.message || err?.message || `Failed to ${action} password reset`
-      alert(msg)
+      toast.error(msg)
     }
   }
 

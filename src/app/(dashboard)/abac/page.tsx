@@ -140,8 +140,6 @@ export default function ABACManagementPage() {
   };
 
   const deletePolicy = async (policyId: string) => {
-    if (!confirm('Are you sure you want to delete this policy?')) return;
-    
     try {
       await api.delete(`/superadmin/abac/policies/${policyId}`);
       toast.success('Policy deleted successfully');

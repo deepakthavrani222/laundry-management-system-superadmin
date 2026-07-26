@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, AlertTriangle, User, Building2, Package } from 'lucide-react'
+import toast from 'react-hot-toast'
+import api from '@/lib/api'
 
 export default function CreateTicketPage() {
   const router = useRouter()
@@ -22,39 +24,12 @@ export default function CreateTicketPage() {
     setLoading(true)
 
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) {
-        alert('Authentication required')
-        return
-      }
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) {
-        alert('Authentication token not found')
-        return
-      }
-
-      const response = await fetch('http://localhost:5000/api/support/tickets', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        alert('Ticket created successfully!')
-        router.push('/support/tickets')
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Failed to create ticket')
-      }
-    } catch (error) {
+      await api.post('/support/tickets', formData)
+      toast.success('Ticket created successfully!')
+      router.push('/support/tickets')
+    } catch (error: any) {
       console.error('Error creating ticket:', error)
-      alert('Failed to create ticket')
+      toast.error(error.response?.data?.message || 'Failed to create ticket')
     } finally {
       setLoading(false)
     }

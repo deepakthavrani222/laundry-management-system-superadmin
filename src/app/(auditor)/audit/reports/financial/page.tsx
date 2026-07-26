@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import { 
   DollarSign,
@@ -69,6 +68,7 @@ export default function FinancialAuditReportsPage() {
   const [trends, setTrends] = useState<TransactionTrend[]>([])
   const [tenantFinancials, setTenantFinancials] = useState<TenantFinancials[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState('30d')
   const [selectedMetric, setSelectedMetric] = useState('revenue')
 
@@ -92,58 +92,10 @@ export default function FinancialAuditReportsPage() {
       
     } catch (error) {
       console.error('Error fetching financial reports:', error)
-      // Keep existing mock data as fallback
-      const mockMetrics: FinancialMetrics = {
-        totalRevenue: 2456789,
-        totalTransactions: 12847,
-        successRate: 97.2,
-        refundRate: 2.3,
-        chargebackRate: 0.8,
-        averageTransactionValue: 191.25,
-        monthlyGrowth: 12.5,
-        discrepancies: 3
-      }
-
-      const mockTrends: TransactionTrend[] = Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        revenue: Math.floor(Math.random() * 100000) + 50000,
-        transactions: Math.floor(Math.random() * 500) + 200,
-        refunds: Math.floor(Math.random() * 20) + 5
-      }))
-
-      const mockTenantFinancials: TenantFinancials[] = [
-        {
-          tenantId: 'tenant_1',
-          tenantName: 'Clean & Fresh Laundry',
-          revenue: 456789,
-          transactions: 2847,
-          refunds: 67,
-          refundRate: 2.4,
-          riskScore: 2
-        },
-        {
-          tenantId: 'tenant_2',
-          tenantName: 'QuickWash Services',
-          revenue: 234567,
-          transactions: 1456,
-          refunds: 89,
-          refundRate: 6.1,
-          riskScore: 4
-        },
-        {
-          tenantId: 'tenant_3',
-          tenantName: 'Express Laundry',
-          revenue: 345678,
-          transactions: 1789,
-          refunds: 23,
-          refundRate: 1.3,
-          riskScore: 1
-        }
-      ]
-
-      setMetrics(mockMetrics)
-      setTrends(mockTrends)
-      setTenantFinancials(mockTenantFinancials)
+      setError('Failed to load financial reports. Please try again.')
+      setMetrics(null)
+      setTrends([])
+      setTenantFinancials([])
     } finally {
       setLoading(false)
     }
@@ -176,6 +128,14 @@ export default function FinancialAuditReportsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchFinancialReports} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">

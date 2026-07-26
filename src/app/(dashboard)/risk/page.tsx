@@ -301,7 +301,7 @@ export default function RiskManagementPage() {
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold text-gray-900">Escalated Complaints</h3>
                   <Link
-                    href="/superadmin/risk/complaints?isEscalated=true"
+                    href="/risk/complaints?isEscalated=true"
                     className="text-sm text-purple-600 hover:text-purple-700"
                   >
                     View All
@@ -324,7 +324,7 @@ export default function RiskManagementPage() {
                         <div className="flex items-center gap-2">
                           {getSeverityBadge(complaint.severity)}
                           <Link
-                            href={`/superadmin/risk/complaints/${complaint._id}`}
+                            href={`/risk/complaints/${complaint._id}`}
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <Eye className="h-4 w-4" />
@@ -347,7 +347,7 @@ export default function RiskManagementPage() {
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold text-gray-900">SLA Breaches</h3>
                   <Link
-                    href="/superadmin/risk/complaints?slaBreached=true"
+                    href="/risk/complaints?slaBreached=true"
                     className="text-sm text-purple-600 hover:text-purple-700"
                   >
                     View All
@@ -370,7 +370,7 @@ export default function RiskManagementPage() {
                         <div className="flex items-center gap-2">
                           {getStatusBadge(complaint.status)}
                           <Link
-                            href={`/superadmin/risk/complaints/${complaint._id}`}
+                            href={`/risk/complaints/${complaint._id}`}
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <Eye className="h-4 w-4" />
@@ -393,7 +393,7 @@ export default function RiskManagementPage() {
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold text-gray-900">Fraud Suspicious</h3>
                   <Link
-                    href="/superadmin/risk/complaints?fraudRisk=high"
+                    href="/risk/complaints?fraudRisk=high"
                     className="text-sm text-purple-600 hover:text-purple-700"
                   >
                     View All
@@ -418,7 +418,7 @@ export default function RiskManagementPage() {
                             High Risk
                           </span>
                           <Link
-                            href={`/superadmin/risk/complaints/${complaint._id}`}
+                            href={`/risk/complaints/${complaint._id}`}
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <Eye className="h-4 w-4" />
@@ -441,7 +441,7 @@ export default function RiskManagementPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link
-          href="/superadmin/risk/complaints"
+          href="/risk/complaints"
           className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
@@ -456,7 +456,7 @@ export default function RiskManagementPage() {
         </Link>
 
         <Link
-          href="/superadmin/risk/blacklist"
+          href="/risk/blacklist"
           className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
@@ -471,7 +471,7 @@ export default function RiskManagementPage() {
         </Link>
 
         <Link
-          href="/superadmin/risk/sla"
+          href="/risk/sla"
           className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
@@ -486,7 +486,7 @@ export default function RiskManagementPage() {
         </Link>
 
         <Link
-          href="/superadmin/risk/escalations"
+          href="/risk/escalations"
           className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">

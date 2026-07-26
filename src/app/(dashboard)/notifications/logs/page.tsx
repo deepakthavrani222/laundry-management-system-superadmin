@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  FileText, 
-  Search, 
-  Filter, 
-  Download, 
+import {
+  FileText,
+  Search,
+  Filter,
+  Download,
   RefreshCw,
   Clock,
   User,
@@ -15,6 +15,8 @@ import {
   Eye,
   Calendar
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface NotificationLog {
   id: string
@@ -71,124 +73,72 @@ export default function NotificationLogsPage() {
   const [selectedChannel, setSelectedChannel] = useState<string>('all')
   const [dateRange, setDateRange] = useState<string>('today')
   const [selectedLog, setSelectedLog] = useState<NotificationLog | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  // Mock data - replace with actual API calls
-  useEffect(() => {
-    const mockLogs: NotificationLog[] = [
-      {
-        id: '1',
-        timestamp: '2024-01-29T10:30:00Z',
-        eventType: 'payment_failed',
-        priority: 'P1',
-        title: 'Payment Failed',
-        message: 'Payment of $150.00 failed for order #12345',
-        recipient: {
-          id: 'user1',
-          email: 'admin@tenant1.com',
-          role: 'tenant_admin',
-          tenantId: 'tenant1'
-        },
-        status: 'delivered',
-        channel: 'websocket',
-        metadata: {
-          tenantName: 'Clean & Fresh Laundry',
-          classification: 'automatic',
-          responseTime: 250
-        }
-      },
-      {
-        id: '2',
-        timestamp: '2024-01-29T10:25:00Z',
-        eventType: 'security_alert',
-        priority: 'P0',
-        title: 'Security Alert',
-        message: 'Multiple failed login attempts detected',
-        recipient: {
-          id: 'admin1',
-          email: 'security@laundrylobby.com',
-          role: 'super_admin'
-        },
-        status: 'read',
-        channel: 'email',
-        metadata: {
-          classification: 'automatic',
-          responseTime: 150
-        }
-      },
-      {
-        id: '3',
-        timestamp: '2024-01-29T10:20:00Z',
-        eventType: 'order_update',
-        priority: 'P2',
-        title: 'Order Status Update',
-        message: 'Order #12346 has been picked up',
-        recipient: {
-          id: 'user2',
-          email: 'customer@example.com',
-          role: 'customer',
-          tenantId: 'tenant1'
-        },
-        status: 'failed',
-        channel: 'sms',
-        metadata: {
-          tenantName: 'Clean & Fresh Laundry',
-          classification: 'automatic',
-          errorMessage: 'SMS delivery failed: Invalid phone number'
-        }
-      },
-      {
-        id: '4',
-        timestamp: '2024-01-29T10:15:00Z',
-        eventType: 'system_maintenance',
-        priority: 'P3',
-        title: 'Maintenance Notification',
-        message: 'Scheduled maintenance will begin at 2 AM EST',
-        recipient: {
-          id: 'user3',
-          email: 'ops@tenant2.com',
-          role: 'tenant_admin',
-          tenantId: 'tenant2'
-        },
-        status: 'pending',
-        channel: 'push',
-        metadata: {
-          tenantName: 'Express Wash Co.',
-          classification: 'manual'
-        }
-      }
-    ]
-
-    setTimeout(() => {
-      setLogs(mockLogs)
+  const fetchLogs = async () => {
+    setLoading(true)
+    try {
+      const params: Record<string, string> = { page: String(currentPage ?? 1), limit: '20' }
+      const res = await api.get('/superadmin/notifications', { params })
+      const d = res.data?.data || res.data
+      setLogs(Array.isArray(d?.notifications) ? d.notifications : Array.isArray(d) ? d : [])
+    } catch {
+      setLogs([])
+    } finally {
       setLoading(false)
-    }, 1000)
-  }, [])
+    }
+  }
+
+  useEffect(() => {
+    fetchLogs()
+  }, [currentPage])
+
+  const colorMap: Record<string, string> = {
+    blue: 'bg-blue-100 text-blue-700',
+    green: 'bg-green-100 text-green-700',
+    red: 'bg-red-100 text-red-700',
+    yellow: 'bg-yellow-100 text-yellow-700',
+    purple: 'bg-purple-100 text-purple-700',
+    gray: 'bg-gray-100 text-gray-700',
+    orange: 'bg-orange-100 text-orange-700',
+  }
 
   // Filter logs based on search and filters
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       log.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.recipient.email.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     const matchesPriority = selectedPriority === 'all' || log.priority === selectedPriority
     const matchesStatus = selectedStatus === 'all' || log.status === selectedStatus
     const matchesChannel = selectedChannel === 'all' || log.channel === selectedChannel
-    
+
+    const createdAt = (log as any).createdAt || log.timestamp
+    if (createdAt && dateRange !== 'all') {
+      const logDate = new Date(createdAt)
+      const now = new Date()
+      if (dateRange === 'today') {
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        if (logDate < startOfDay) return false
+      } else if (dateRange === 'week') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        if (logDate < weekAgo) return false
+      } else if (dateRange === 'month') {
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+        if (logDate < monthAgo) return false
+      }
+    }
+
     return matchesSearch && matchesPriority && matchesStatus && matchesChannel
   })
 
   const exportLogs = () => {
-    // Implementation for exporting logs
-    console.log('Exporting logs...')
+    toast('Export not yet supported')
   }
 
   const refreshLogs = () => {
-    setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
+    fetchLogs()
   }
 
   if (loading) {
@@ -278,7 +228,9 @@ export default function NotificationLogsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg Response</p>
               <p className="text-xl font-bold text-blue-600">
-                {Math.round(logs.reduce((sum, l) => sum + (l.metadata.responseTime || 0), 0) / logs.length)}ms
+                {logs.length > 0
+                  ? Math.round(logs.reduce((sum, l) => sum + (l.metadata.responseTime || 0), 0) / logs.length)
+                  : 0}ms
               </p>
             </div>
             <Clock className="w-6 h-6 text-blue-600" />
@@ -423,14 +375,14 @@ export default function NotificationLogsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <StatusIcon className={`w-4 h-4 mr-2 text-${statusStyle.color}-600`} />
-                        <span className={`text-sm text-${statusStyle.color}-600`}>
+                        <StatusIcon className={`w-4 h-4 mr-2 ${colorMap[statusStyle.color] || 'bg-gray-100 text-gray-700'}`} />
+                        <span className={`text-sm ${colorMap[statusStyle.color] || 'bg-gray-100 text-gray-700'}`}>
                           {statusStyle.name}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full bg-${channelStyle.color}-100 text-${channelStyle.color}-800`}>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${colorMap[channelStyle.color] || 'bg-gray-100 text-gray-700'}`}>
                         {channelStyle.name}
                       </span>
                     </td>
@@ -456,6 +408,26 @@ export default function NotificationLogsPage() {
             <p className="text-gray-600">Try adjusting your search criteria or filters.</p>
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="text-sm text-gray-700">Page {currentPage}</div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Log Detail Modal */}
@@ -471,7 +443,7 @@ export default function NotificationLogsPage() {
                 ×
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -493,17 +465,17 @@ export default function NotificationLogsPage() {
                   <p className="text-sm text-gray-900">{statusConfig[selectedLog.status].name}</p>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Title</label>
                 <p className="text-sm text-gray-900">{selectedLog.title}</p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Message</label>
                 <p className="text-sm text-gray-900">{selectedLog.message}</p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Recipient</label>
                 <div className="text-sm text-gray-900">
@@ -514,7 +486,7 @@ export default function NotificationLogsPage() {
                   )}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Channel</label>
@@ -525,14 +497,14 @@ export default function NotificationLogsPage() {
                   <p className="text-sm text-gray-900">{selectedLog.metadata.classification}</p>
                 </div>
               </div>
-              
+
               {selectedLog.metadata.responseTime && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Response Time</label>
                   <p className="text-sm text-gray-900">{selectedLog.metadata.responseTime}ms</p>
                 </div>
               )}
-              
+
               {selectedLog.metadata.errorMessage && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Error Message</label>
@@ -540,7 +512,7 @@ export default function NotificationLogsPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}

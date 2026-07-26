@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSuperAdminStore } from '@/store/superAdminStore'
 import CreateCampaignModal from '@/components/campaigns/CreateCampaignModal'
 import {
   Target,
@@ -30,6 +29,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface Campaign {
   _id: string
@@ -85,8 +85,6 @@ interface Tenancy {
   slug: string
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-
 const CAMPAIGN_STATUSES = [
   { value: 'DRAFT', label: 'Draft', color: 'bg-gray-100 text-gray-800' },
   { value: 'PENDING_APPROVAL', label: 'Pending Approval', color: 'bg-orange-100 text-orange-800' },
@@ -97,7 +95,6 @@ const CAMPAIGN_STATUSES = [
 ]
 
 export default function SuperAdminCampaignsPage() {
-  const { token } = useSuperAdminStore()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [tenancies, setTenancies] = useState<Tenancy[]>([])
   const [loading, setLoading] = useState(true)
@@ -121,10 +118,8 @@ export default function SuperAdminCampaignsPage() {
       if (statusFilter !== 'all') params.append('status', statusFilter)
       if (tenancyFilter !== 'all') params.append('tenancyId', tenancyFilter)
 
-      const res = await fetch(`${API_BASE}/superadmin/campaigns?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
+      const res = await api.get(`/superadmin/campaigns?${params}`)
+      const data = res.data
       if (data.success) {
         setCampaigns(data.data.campaigns || [])
       } else {
@@ -140,10 +135,8 @@ export default function SuperAdminCampaignsPage() {
 
   const fetchTenancies = async () => {
     try {
-      const res = await fetch(`${API_BASE}/superadmin/campaigns/tenancies`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
+      const res = await api.get('/superadmin/campaigns/tenancies')
+      const data = res.data
       if (data.success) {
         setTenancies(data.data.tenancies || [])
       }
@@ -154,16 +147,8 @@ export default function SuperAdminCampaignsPage() {
 
   const handleApproval = async (campaignId: string, action: 'approve' | 'reject') => {
     try {
-      const res = await fetch(`${API_BASE}/superadmin/campaigns/${campaignId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action }),
-      })
-
-      const data = await res.json()
+      const res = await api.post(`/superadmin/campaigns/${campaignId}/approve`, { action })
+      const data = res.data
       if (data.success) {
         toast.success(`Campaign ${action}d successfully`)
         fetchCampaigns()
@@ -178,12 +163,8 @@ export default function SuperAdminCampaignsPage() {
 
   const handleToggleStatus = async (campaignId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/superadmin/campaigns/${campaignId}/toggle`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const data = await res.json()
+      const res = await api.post(`/superadmin/campaigns/${campaignId}/toggle`)
+      const data = res.data
       if (data.success) {
         toast.success('Campaign status updated successfully')
         fetchCampaigns()
@@ -197,15 +178,9 @@ export default function SuperAdminCampaignsPage() {
   }
 
   const handleDelete = async (campaignId: string) => {
-    if (!confirm('Are you sure you want to delete this campaign?')) return
-
     try {
-      const res = await fetch(`${API_BASE}/superadmin/campaigns/${campaignId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const data = await res.json()
+      const res = await api.delete(`/superadmin/campaigns/${campaignId}`)
+      const data = res.data
       if (data.success) {
         toast.success('Campaign deleted successfully')
         fetchCampaigns()

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { 
   ArrowLeft,
   Send,
@@ -54,14 +55,14 @@ export default function CreateTicketPage() {
     try {
       const token = localStorage.getItem('auth-storage')
       if (!token) {
-        alert('Authentication required')
+        toast.error('Authentication required')
         return
       }
 
       const parsed = JSON.parse(token)
       const authToken = parsed.state?.token
       if (!authToken) {
-        alert('Authentication token not found')
+        toast.error('Authentication token not found')
         return
       }
 
@@ -92,17 +93,17 @@ export default function CreateTicketPage() {
       if (response.ok) {
         const result = await response.json()
         if (result.success) {
-          alert('Ticket created successfully!')
+          toast.success('Ticket created successfully!')
           router.push('/support-tickets')
         } else {
-          alert('Failed to create ticket: ' + (result.message || 'Unknown error'))
+          toast.error('Failed to create ticket: ' + (result.message || 'Unknown error'))
         }
       } else {
-        alert('Failed to create ticket: ' + response.statusText)
+        toast.error('Failed to create ticket: ' + response.statusText)
       }
     } catch (error) {
       console.error('Error creating ticket:', error)
-      alert('Error creating ticket. Please try again.')
+      toast.error('Error creating ticket. Please try again.')
     } finally {
       setLoading(false)
     }

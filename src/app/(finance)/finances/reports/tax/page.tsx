@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import { 
   FileText,
   Download,
@@ -147,12 +149,24 @@ export default function TaxReportsPage() {
     }
   }
 
-  const generateGSTReturn = () => {
-    console.log('Generating GST return...')
+  const generateGSTReturn = async () => {
+    const t = toast.loading('Generating GST return...')
+    try {
+      await api.post('/superadmin/financial/reports/generate', { type: 'gst' })
+      toast.success('GST return generated', { id: t })
+    } catch {
+      toast.error('Failed to generate', { id: t })
+    }
   }
 
-  const generateTDSReturn = () => {
-    console.log('Generating TDS return...')
+  const generateTDSReturn = async () => {
+    const t = toast.loading('Generating TDS return...')
+    try {
+      await api.post('/superadmin/financial/reports/generate', { type: 'tds' })
+      toast.success('TDS return generated', { id: t })
+    } catch {
+      toast.error('Failed to generate', { id: t })
+    }
   }
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
@@ -439,7 +453,7 @@ export default function TaxReportsPage() {
                       <div className="text-sm text-gray-900 font-mono">{tenant.panNumber || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                      <button onClick={() => toast('Coming soon')} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         View Details
                       </button>
                     </td>
@@ -477,15 +491,15 @@ export default function TaxReportsPage() {
             </div>
           </button>
           
-          <button className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button onClick={() => toast('Coming soon')} className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <Download className="w-6 h-6 text-purple-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Export Tax Data</p>
               <p className="text-xs text-gray-500">Excel, CSV formats</p>
             </div>
           </button>
-          
-          <button className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+
+          <button onClick={() => toast('Coming soon')} className="flex items-center justify-center space-x-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <RefreshCw className="w-6 h-6 text-orange-600" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">Sync Tax Data</p>

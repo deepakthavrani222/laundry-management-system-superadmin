@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import api from '@/lib/api'
-import { 
+import toast from 'react-hot-toast'
+import {
   Shield,
   Search,
   User,
@@ -159,14 +160,14 @@ export default function AccountRecoveryPage() {
       const data = response.data
       if (data?.success) {
         await loadRecoveryRequests()
-        alert(`Recovery request ${action}ed successfully`)
+        toast.success(`Recovery request ${action}ed successfully`)
       } else {
         throw new Error(data.message || `Failed to ${action} recovery request`)
       }
     } catch (err: any) {
       console.error(`Error ${action}ing recovery request:`, err)
       const msg = err?.response?.data?.message || err?.message || `Failed to ${action} recovery request`
-      alert(msg)
+      toast.error(msg)
     }
   }
 
