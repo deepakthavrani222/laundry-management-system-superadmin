@@ -56,19 +56,9 @@ export default function SalesLayout({
     const timer = setTimeout(() => {
       const currentState = useAuthStore.getState()
 
-      console.log('🔐 Sales Layout Auth Check:', {
-        isAuthenticated: currentState.isAuthenticated,
-        userType: currentState.userType,
-        isValidating,
-        hasToken: !!currentState.token,
-        hasUser: !!currentState.user
-      })
-
       if (!isValidating && !currentState.isAuthenticated && !currentState.token) {
-        console.log('🔐 Not authenticated, redirecting to login')
         router.push('/auth/login')
       } else if (!isValidating && currentState.userType !== 'sales' && currentState.userType !== 'superadmin') {
-        console.log('🔐 Wrong user type, redirecting to dashboard')
         router.push('/dashboard')
       }
     }, 200) // Extra delay for safety

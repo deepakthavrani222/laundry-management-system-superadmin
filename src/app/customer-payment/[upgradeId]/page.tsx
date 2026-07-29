@@ -16,8 +16,9 @@ import {
   ExternalLink
 } from 'lucide-react'
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Sp1LD39sP2yt4IkYMaBjKENoYco6quTah5DwIEtnfBh4LEsOKkFFvM6dX13poyMm7gyz3YCcSJcF0R4n4J9nvsM00gS52EooV')
+// Initialize Stripe — key must be present in env; no hardcoded fallback
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 interface UpgradeRequest {
   _id: string
@@ -280,6 +281,18 @@ export default function CustomerPaymentPage() {
     )
   }
 
+  if (!stripeKey) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <AlertTriangle className="mx-auto h-16 w-16 text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Configuration Error</h1>
+          <p className="text-gray-600 mb-6">Payment system is not configured. Please contact support.</p>
+        </div>
+      </div>
+    )
+  }
+
   if (error || !upgradeRequest) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
@@ -326,7 +339,7 @@ export default function CustomerPaymentPage() {
   )
 
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={stripePromise!}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">

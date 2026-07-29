@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  Bell, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Users, 
+import {
+  Bell,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Users,
   Activity,
   RefreshCw,
   Send,
@@ -14,6 +14,8 @@ import {
   Edit,
   Plus
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface SystemNotification {
   id: string
@@ -47,58 +49,42 @@ const typeConfig = {
 
 export default function SystemNotificationsPage() {
   const [notifications, setNotifications] = useState<SystemNotification[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'active' | 'scheduled' | 'sent' | 'drafts'>('active')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
-  // Mock data - replace with actual API calls
-  useEffect(() => {
-    const mockNotifications: SystemNotification[] = [
-      {
-        id: '1',
-        title: 'System Maintenance Scheduled',
-        message: 'Scheduled maintenance will occur on Sunday, 2AM-4AM EST. Some services may be temporarily unavailable.',
-        priority: 'P1',
-        type: 'maintenance',
-        status: 'scheduled',
-        targetAudience: 'all',
-        scheduledFor: '2024-02-04T02:00:00Z',
-        createdAt: '2024-01-28T10:00:00Z',
-        createdBy: 'admin@laundrylobby.com'
-      },
-      {
-        id: '2',
-        title: 'Security Update Available',
-        message: 'A critical security update is available. Please update your systems at your earliest convenience.',
-        priority: 'P0',
-        type: 'security',
-        status: 'active',
-        targetAudience: 'admins',
-        createdAt: '2024-01-27T15:30:00Z',
-        createdBy: 'security@laundrylobby.com',
-        sentAt: '2024-01-27T15:35:00Z',
-        recipients: 45
-      },
-      {
-        id: '3',
-        title: 'New Feature Release',
-        message: 'We\'ve released new priority management features. Check out the updated notification system!',
-        priority: 'P2',
-        type: 'update',
-        status: 'sent',
-        targetAudience: 'all',
-        createdAt: '2024-01-26T09:00:00Z',
-        createdBy: 'product@laundrylobby.com',
-        sentAt: '2024-01-26T09:15:00Z',
-        recipients: 1250
-      }
-    ]
+  // Form state for test-alert
+  const [formTitle, setFormTitle] = useState('')
+  const [formMessage, setFormMessage] = useState('')
+  const [sending, setSending] = useState(false)
 
-    setTimeout(() => {
-      setNotifications(mockNotifications)
-      setLoading(false)
-    }, 1000)
+  // No backend list endpoint for system notifications — start empty immediately
+  useEffect(() => {
+    setNotifications([])
+    setLoading(false)
   }, [])
+
+  const handleSendTestAlert = async () => {
+    if (!formTitle.trim() || !formMessage.trim()) {
+      toast.error('Please fill in both title and message')
+      return
+    }
+    setSending(true)
+    try {
+      await api.post('/superadmin/notifications/test-alert', {
+        title: formTitle,
+        message: formMessage
+      })
+      toast.success('Test notification sent')
+      setShowCreateModal(false)
+      setFormTitle('')
+      setFormMessage('')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to send test notification')
+    } finally {
+      setSending(false)
+    }
+  }
 
   const filteredNotifications = notifications.filter(n => n.status === activeTab)
 
@@ -110,7 +96,7 @@ export default function SystemNotificationsPage() {
       draft: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Draft' }
     }
     const statusConfig = config[status as keyof typeof config] || config.draft
-    
+
     return (
       <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
         {statusConfig.label}
@@ -139,7 +125,7 @@ export default function SystemNotificationsPage() {
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Create Notification
+          Send Test Alert
         </button>
       </div>
 
@@ -243,7 +229,7 @@ export default function SystemNotificationsPage() {
             const priorityStyle = priorityConfig[notification.priority]
             const typeStyle = typeConfig[notification.type]
             const TypeIcon = typeStyle.icon
-            
+
             return (
               <div key={notification.id} className={`p-6 rounded-lg border ${priorityStyle.bgColor} ${priorityStyle.borderColor}`}>
                 <div className="flex items-start justify-between">
@@ -258,11 +244,11 @@ export default function SystemNotificationsPage() {
                         {getStatusBadge(notification.status)}
                       </span>
                     </div>
-                    
+
                     <p className={`text-sm ${priorityStyle.textColor} mb-3`}>
                       {notification.message}
                     </p>
-                    
+
                     <div className="flex items-center text-xs text-gray-500 space-x-4">
                       <span>Created: {new Date(notification.createdAt).toLocaleDateString()}</span>
                       <span>By: {notification.createdBy}</span>
@@ -275,12 +261,18 @@ export default function SystemNotificationsPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 ml-4">
-                    <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white">
+                    <button
+                      onClick={() => toast('Not yet supported')}
+                      className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white"
+                    >
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-white">
+                    <button
+                      onClick={() => toast('Not yet supported')}
+                      className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-white"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -291,18 +283,76 @@ export default function SystemNotificationsPage() {
         )}
       </div>
 
-      {/* Create Modal Placeholder */}
+      {/* Create / Send Test Alert Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium mb-4">Create System Notification</h3>
-            <p className="text-gray-600 mb-4">This feature will be implemented in the next phase.</p>
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-            >
-              Close
-            </button>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Send Test Alert</h3>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setFormTitle('')
+                  setFormMessage('')
+                }}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="e.g., System Maintenance Alert"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formMessage}
+                  onChange={(e) => setFormMessage(e.target.value)}
+                  placeholder="e.g., Scheduled maintenance will begin at 2 AM EST."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setFormTitle('')
+                  setFormMessage('')
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendTestAlert}
+                disabled={sending}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {sending ? (
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                {sending ? 'Sending...' : 'Send Alert'}
+              </button>
+            </div>
           </div>
         </div>
       )}

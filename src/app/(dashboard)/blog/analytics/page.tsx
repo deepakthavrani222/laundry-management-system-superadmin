@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { superAdminApi } from '@/lib/superAdminApi'
 import { 
   BarChart3, 
@@ -147,7 +148,10 @@ export default function BlogAnalyticsPage() {
               </option>
             ))}
           </select>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <button
+            onClick={() => toast('Blog analytics export coming soon')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+          >
             <Download className="w-4 h-4" />
             <span>Export</span>
           </button>

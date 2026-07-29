@@ -63,8 +63,6 @@ export default function SubscriptionDetailPage() {
   const fetchSubscription = async () => {
     try {
       const response = await api.get(`/sales/subscriptions/${subscriptionId}`)
-      console.log('Subscription Detail API Response:', response.data)
-      
       // Backend returns data in response.data.data
       const tenancy = response.data?.data?.tenancy
       
@@ -91,14 +89,10 @@ export default function SubscriptionDetailPage() {
           createdAt: tenancy.createdAt
         }
         
-        console.log('Mapped Subscription:', mappedSubscription)
         setSubscription(mappedSubscription)
-      } else {
-        console.log('No tenancy found in response')
       }
     } catch (error: any) {
       console.error('Error fetching subscription:', error)
-      console.error('Error details:', error.response?.data)
     } finally {
       setLoading(false)
     }
@@ -351,6 +345,9 @@ export default function SubscriptionDetailPage() {
             setShowUpgradeModal(false)
             fetchSubscription()
           }}
+          setShowPaymentLinkModal={setShowPaymentLinkModal}
+          setGeneratedPaymentLink={setGeneratedPaymentLink}
+          setUpgradeRequestData={setUpgradeRequestData}
         />
       )}
 
@@ -479,7 +476,7 @@ function PauseResumeModal({ subscriptionId, tenancyName, currentStatus, onClose,
 }
 
 // Upgrade Modal
-function UpgradeModal({ subscriptionId, tenancyName, currentPlan, onClose, onSuccess }: any) {
+function UpgradeModal({ subscriptionId, tenancyName, currentPlan, onClose, onSuccess, setShowPaymentLinkModal, setGeneratedPaymentLink, setUpgradeRequestData }: any) {
   const [newPlan, setNewPlan] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -823,8 +820,6 @@ function PaymentLinkModal({ paymentLink, upgradeData, tenancyName, onClose }: an
       const response = await api.post(`/sales/upgrades/${upgradeData._id}/send-email`)
       
       if (response.data?.success) {
-        console.log('Email sent successfully:', response.data.data.messageId)
-        // Keep the success state for 3 seconds
         setTimeout(() => setEmailSent(false), 3000)
       } else {
         throw new Error('Email sending failed')
@@ -832,7 +827,6 @@ function PaymentLinkModal({ paymentLink, upgradeData, tenancyName, onClose }: an
     } catch (err) {
       console.error('Failed to send email:', err)
       setEmailSent(false)
-      alert('Failed to send email. Please try again.')
     }
   }
 

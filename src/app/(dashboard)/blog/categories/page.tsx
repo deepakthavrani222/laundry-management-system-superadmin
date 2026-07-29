@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   Plus, 
   Edit, 
@@ -132,17 +133,16 @@ export default function BlogCategoriesPage() {
 
   const handleDelete = async (id: string, postCount: number = 0) => {
     if (postCount > 0) {
-      alert(`Cannot delete category with ${postCount} posts. Please move or delete posts first.`)
+      toast.error(`Cannot delete category with ${postCount} posts. Please move or delete posts first.`)
       return
     }
 
-    if (!confirm('Are you sure you want to delete this category?')) return
-    
     try {
       await superAdminApi.deleteBlogCategory(id)
+      toast.success('Category deleted')
       fetchCategories()
     } catch (err: any) {
-      alert(err.message || 'Failed to delete category')
+      toast.error(err.message || 'Failed to delete category')
     }
   }
 

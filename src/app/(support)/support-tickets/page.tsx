@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSuperAdmin } from '@/store/authStore'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 import {
   MessageSquare,
   AlertTriangle,
@@ -125,51 +127,24 @@ export default function SupportTicketsDashboard() {
 
   const loadSupportTickets = async () => {
     try {
-      // TODO: Replace with real API calls
-      const token = localStorage.getItem('auth-storage')
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) {
-        setLoading(false)
-        return
-      }
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
-
       // Load support ticket statistics
       try {
-        const statsResponse = await fetch(`${API_URL}/support/stats`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json()
-          if (statsData.success) {
-            setStats({
-              totalTickets: statsData.data.totalTickets || 0,
-              openTickets: statsData.data.openTickets || 0,
-              resolvedTickets: statsData.data.resolvedTickets || 0,
-              avgResponseTime: statsData.data.avgResponseTime || '0h',
-              slaBreaches: statsData.data.slaBreaches || 0,
-              escalatedTickets: statsData.data.escalatedTickets || 0,
-              todayTickets: statsData.data.todayTickets || 0,
-              myAssignedTickets: statsData.data.myAssignedTickets || 0
-            })
-          }
-        } else {
-          console.error('Stats API failed:', statsResponse.status, statsResponse.statusText)
+        const statsResponse = await api.get('/support/stats')
+        const statsData = statsResponse.data
+        if (statsData.success) {
+          setStats({
+            totalTickets: statsData.data.totalTickets || 0,
+            openTickets: statsData.data.openTickets || 0,
+            resolvedTickets: statsData.data.resolvedTickets || 0,
+            avgResponseTime: statsData.data.avgResponseTime || '0h',
+            slaBreaches: statsData.data.slaBreaches || 0,
+            escalatedTickets: statsData.data.escalatedTickets || 0,
+            todayTickets: statsData.data.todayTickets || 0,
+            myAssignedTickets: statsData.data.myAssignedTickets || 0
+          })
         }
       } catch (error) {
         console.error('Failed to load ticket stats:', error)
-        // Use minimal fallback stats
         setStats({
           totalTickets: 0,
           openTickets: 0,
@@ -184,53 +159,41 @@ export default function SupportTicketsDashboard() {
 
       // Load all support tickets
       try {
-        const ticketsResponse = await fetch(`${API_URL}/support/tickets`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
+        const ticketsResponse = await api.get('/support/tickets')
+        const ticketsData = ticketsResponse.data
+        console.log('🎫 Raw tickets data:', ticketsData)
 
-        if (ticketsResponse.ok) {
-          const ticketsData = await ticketsResponse.json()
-          console.log('🎫 Raw tickets data:', ticketsData)
+        if (ticketsData.success && ticketsData.data) {
+          // Transform backend data to frontend format
+          const transformedTickets = ticketsData.data.map((ticket: any) => ({
+            id: ticket._id || ticket.id,
+            ticketNumber: ticket.ticketNumber || `TKT-${(ticket._id || ticket.id || '').slice(-6)}`,
+            title: ticket.subject || ticket.title || 'Untitled Ticket',
+            description: ticket.description || 'No description provided',
+            user: {
+              name: ticket.createdBy?.name || ticket.tenantName || 'Unknown User',
+              email: ticket.createdBy?.email || 'unknown@email.com',
+              role: ticket.createdBy?.role || 'tenant_admin',
+              tenantId: ticket.tenantId
+            },
+            priority: ticket.systemPriority || ticket.priority || 'P3',
+            status: ticket.status || 'new',
+            category: ticket.category || 'general',
+            source: 'tenant-admin',
+            slaTimer: ticket.slaDeadline ? `${Math.ceil((new Date(ticket.slaDeadline).getTime() - Date.now()) / (1000 * 60 * 60))}h remaining` : 'No SLA',
+            createdAt: ticket.createdAt,
+            updatedAt: ticket.updatedAt,
+            assignedTo: ticket.assignedTo?.name || null,
+            tenantName: ticket.tenantName || 'Unknown Tenant',
+            responseCount: ticket.messages?.length || 0,
+            lastResponse: ticket.updatedAt !== ticket.createdAt ? 'Recently updated' : null,
+            businessImpact: ticket.businessImpact
+          }))
 
-          if (ticketsData.success && ticketsData.data) {
-            // Transform backend data to frontend format
-            const transformedTickets = ticketsData.data.map((ticket: any) => ({
-              id: ticket._id || ticket.id,
-              ticketNumber: ticket.ticketNumber || `TKT-${(ticket._id || ticket.id || '').slice(-6)}`,
-              title: ticket.subject || ticket.title || 'Untitled Ticket',
-              description: ticket.description || 'No description provided',
-              user: {
-                name: ticket.createdBy?.name || ticket.tenantName || 'Unknown User',
-                email: ticket.createdBy?.email || 'unknown@email.com',
-                role: ticket.createdBy?.role || 'tenant_admin',
-                tenantId: ticket.tenantId
-              },
-              priority: ticket.systemPriority || ticket.priority || 'P3',
-              status: ticket.status || 'new',
-              category: ticket.category || 'general',
-              source: 'tenant-admin',
-              slaTimer: ticket.slaDeadline ? `${Math.ceil((new Date(ticket.slaDeadline).getTime() - Date.now()) / (1000 * 60 * 60))}h remaining` : 'No SLA',
-              createdAt: ticket.createdAt,
-              updatedAt: ticket.updatedAt,
-              assignedTo: ticket.assignedTo?.name || null,
-              tenantName: ticket.tenantName || 'Unknown Tenant',
-              responseCount: ticket.messages?.length || 0,
-              lastResponse: ticket.updatedAt !== ticket.createdAt ? 'Recently updated' : null,
-              businessImpact: ticket.businessImpact
-            }))
-
-            console.log('🎫 Transformed tickets:', transformedTickets)
-            setTickets(transformedTickets)
-          } else {
-            console.error('Invalid tickets response format:', ticketsData)
-            setTickets([])
-          }
+          console.log('🎫 Transformed tickets:', transformedTickets)
+          setTickets(transformedTickets)
         } else {
-          console.error('Tickets API failed:', ticketsResponse.status, ticketsResponse.statusText)
-          console.log('🔧 No tickets found or API unavailable')
+          console.error('Invalid tickets response format:', ticketsData)
           setTickets([])
         }
       } catch (error) {
@@ -283,75 +246,40 @@ export default function SupportTicketsDashboard() {
 
   const handleTicketAction = async (ticketId: string, action: 'reply' | 'resolve' | 'escalate' | 'edit') => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
-
       switch (action) {
         case 'reply':
           // TODO: Open reply modal or navigate to reply page
-          alert('Reply functionality - would open reply interface')
+          toast('Feature coming soon')
           break
 
         case 'resolve':
-          // Update ticket status to resolved
-          const resolveResponse = await fetch(`${API_URL}/support/tickets/${ticketId}/resolve`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              resolution: 'Ticket resolved by platform support',
-              status: 'resolved'
-            })
+          await api.post(`/support/tickets/${ticketId}/resolve`, {
+            resolution: 'Ticket resolved by platform support',
+            status: 'resolved'
           })
-
-          if (resolveResponse.ok) {
-            alert('Ticket resolved successfully')
-            setSelectedTicket(null)
-            loadSupportTickets() // Refresh the list
-          } else {
-            alert('Failed to resolve ticket')
-          }
+          toast.success('Ticket resolved successfully')
+          setSelectedTicket(null)
+          loadSupportTickets()
           break
 
         case 'escalate':
-          // Escalate ticket
-          const escalateResponse = await fetch(`${API_URL}/support/tickets/${ticketId}/escalate`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              escalationReason: 'Escalated by platform support',
-              escalatedTo: 'supervisor'
-            })
+          await api.post(`/support/tickets/${ticketId}/escalate`, {
+            escalationReason: 'Escalated by platform support',
+            escalatedTo: 'supervisor'
           })
-
-          if (escalateResponse.ok) {
-            alert('Ticket escalated successfully')
-            setSelectedTicket(null)
-            loadSupportTickets() // Refresh the list
-          } else {
-            alert('Failed to escalate ticket')
-          }
+          toast.success('Ticket escalated successfully')
+          setSelectedTicket(null)
+          loadSupportTickets()
           break
 
         case 'edit':
           // TODO: Open edit modal or navigate to edit page
-          alert('Edit functionality - would open edit interface')
+          toast('Feature coming soon')
           break
       }
     } catch (error) {
       console.error(`Error ${action}ing ticket:`, error)
-      alert(`Failed to ${action} ticket`)
+      toast.error(`Failed to ${action} ticket`)
     }
   }
 

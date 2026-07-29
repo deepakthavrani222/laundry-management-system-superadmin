@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
+import api from '@/lib/api'
+import {
   Timer,
   AlertTriangle,
   Clock,
@@ -85,33 +86,11 @@ export default function SLABreachesPage() {
 
   const loadSLABreaches = async () => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) {
-        setLoading(false)
-        return
-      }
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
-
       // Load SLA breach tickets
       try {
-        const response = await fetch(`${API_URL}/support/tickets?sla=breach`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.data) {
+        const response = await api.get('/support/tickets', { params: { sla: 'breach' } })
+        const data = response.data
+        if (data.success && data.data) {
             const transformedBreaches = data.data
               .filter((ticket: any) => {
                 // Filter for SLA breaches - tickets past their deadline
@@ -171,7 +150,6 @@ export default function SLABreachesPage() {
               pendingAction: totalBreaches - escalationRequired,
               escalationRequired
             })
-          }
         }
       } catch (error) {
         console.error('Failed to load SLA breaches:', error)

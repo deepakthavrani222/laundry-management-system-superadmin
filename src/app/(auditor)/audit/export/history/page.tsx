@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import {
   Clock,
   Download,
@@ -48,6 +48,7 @@ interface ExportRecord {
 export default function ExportHistoryPage() {
   const [records, setRecords] = useState<ExportRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFormat, setSelectedFormat] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
@@ -96,220 +97,9 @@ export default function ExportHistoryPage() {
 
     } catch (error) {
       console.error('Error fetching export history:', error)
-      // Fallback to mock data
-      const mockRecords: ExportRecord[] = [
-        {
-          _id: '1',
-          exportId: 'EXP-2026-000101',
-          watermark: 'AUD-2026-007841',
-          type: 'financial',
-          format: 'pdf',
-          status: 'completed',
-          filename: 'financial-audit-AUD-2026-007841.pdf',
-          recordCount: 2450,
-          requestedBy: 'Sarah Mitchell',
-          requestedByEmail: 'sarah.mitchell@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 3600000),
-          completedAt: new Date(Date.now() - 3000000),
-          downloadedAt: new Date(Date.now() - 2400000),
-          downloadCount: 2,
-          expiresAt: new Date(Date.now() + 86400000),
-          expired: false,
-          fileSize: '4.7 MB',
-          ipAddress: '192.168.1.105',
-          notes: 'Q1 2026 financial reconciliation report'
-        },
-        {
-          _id: '2',
-          exportId: 'EXP-2026-000102',
-          watermark: 'AUD-2026-007842',
-          type: 'security',
-          format: 'csv',
-          status: 'completed',
-          filename: 'security-events-AUD-2026-007842.csv',
-          recordCount: 18750,
-          requestedBy: 'James Rodriguez',
-          requestedByEmail: 'james.rodriguez@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 7200000),
-          completedAt: new Date(Date.now() - 6600000),
-          downloadedAt: new Date(Date.now() - 5400000),
-          downloadCount: 1,
-          expiresAt: new Date(Date.now() + 79200000),
-          expired: false,
-          fileSize: '12.3 MB',
-          ipAddress: '10.0.0.45',
-          notes: 'Monthly security event analysis'
-        },
-        {
-          _id: '3',
-          exportId: 'EXP-2026-000103',
-          watermark: 'AUD-2026-007843',
-          type: 'audit',
-          format: 'excel',
-          status: 'processing',
-          filename: 'audit-trail-AUD-2026-007843.xlsx',
-          recordCount: 5200,
-          requestedBy: 'Emily Chen',
-          requestedByEmail: 'emily.chen@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 900000),
-          downloadCount: 0,
-          expiresAt: new Date(Date.now() + 86400000),
-          expired: false,
-          fileSize: '8.1 MB',
-          ipAddress: '172.16.0.22'
-        },
-        {
-          _id: '4',
-          exportId: 'EXP-2026-000104',
-          watermark: 'AUD-2026-007844',
-          type: 'compliance',
-          format: 'pdf',
-          status: 'completed',
-          filename: 'compliance-report-AUD-2026-007844.pdf',
-          recordCount: 980,
-          requestedBy: 'Sarah Mitchell',
-          requestedByEmail: 'sarah.mitchell@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 86400000),
-          completedAt: new Date(Date.now() - 85800000),
-          downloadedAt: new Date(Date.now() - 82800000),
-          downloadCount: 3,
-          expiresAt: new Date(Date.now() + 3600000),
-          expired: false,
-          fileSize: '2.9 MB',
-          ipAddress: '192.168.1.105',
-          notes: 'Regulatory compliance audit - SOC 2 preparation'
-        },
-        {
-          _id: '5',
-          exportId: 'EXP-2026-000105',
-          watermark: 'AUD-2026-007845',
-          type: 'rbac',
-          format: 'csv',
-          status: 'failed',
-          filename: 'rbac-permissions-AUD-2026-007845.csv',
-          recordCount: 0,
-          requestedBy: 'Michael Torres',
-          requestedByEmail: 'michael.torres@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 43200000),
-          downloadCount: 0,
-          expiresAt: new Date(Date.now() + 43200000),
-          expired: false,
-          ipAddress: '10.0.0.88',
-          notes: 'Export failed: timeout during data aggregation'
-        },
-        {
-          _id: '6',
-          exportId: 'EXP-2026-000106',
-          watermark: 'AUD-2026-007846',
-          type: 'tenant',
-          format: 'excel',
-          status: 'expired',
-          filename: 'tenant-data-AUD-2026-007846.xlsx',
-          recordCount: 3400,
-          requestedBy: 'James Rodriguez',
-          requestedByEmail: 'james.rodriguez@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 172800000),
-          completedAt: new Date(Date.now() - 172200000),
-          downloadedAt: new Date(Date.now() - 169200000),
-          downloadCount: 1,
-          expiresAt: new Date(Date.now() - 86400000),
-          expired: true,
-          fileSize: '6.5 MB',
-          ipAddress: '10.0.0.45',
-          notes: 'Multi-tenant performance summary'
-        },
-        {
-          _id: '7',
-          exportId: 'EXP-2026-000107',
-          watermark: 'AUD-2026-007847',
-          type: 'financial',
-          format: 'csv',
-          status: 'pending',
-          filename: 'financial-transactions-AUD-2026-007847.csv',
-          recordCount: 42000,
-          requestedBy: 'Emily Chen',
-          requestedByEmail: 'emily.chen@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 300000),
-          downloadCount: 0,
-          expiresAt: new Date(Date.now() + 86400000),
-          expired: false,
-          ipAddress: '172.16.0.22',
-          notes: 'Full transaction history export for external auditor'
-        },
-        {
-          _id: '8',
-          exportId: 'EXP-2026-000108',
-          watermark: 'AUD-2026-007848',
-          type: 'security',
-          format: 'pdf',
-          status: 'completed',
-          filename: 'security-audit-AUD-2026-007848.pdf',
-          recordCount: 1120,
-          requestedBy: 'Michael Torres',
-          requestedByEmail: 'michael.torres@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 259200000),
-          completedAt: new Date(Date.now() - 258600000),
-          downloadCount: 0,
-          expiresAt: new Date(Date.now() - 172800000),
-          expired: true,
-          fileSize: '3.2 MB',
-          ipAddress: '10.0.0.88',
-          notes: 'Penetration test findings summary'
-        },
-        {
-          _id: '9',
-          exportId: 'EXP-2026-000109',
-          watermark: 'AUD-2026-007849',
-          type: 'compliance',
-          format: 'excel',
-          status: 'completed',
-          filename: 'compliance-matrix-AUD-2026-007849.xlsx',
-          recordCount: 760,
-          requestedBy: 'Sarah Mitchell',
-          requestedByEmail: 'sarah.mitchell@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 14400000),
-          completedAt: new Date(Date.now() - 13800000),
-          downloadedAt: new Date(Date.now() - 10800000),
-          downloadCount: 4,
-          expiresAt: new Date(Date.now() + 72000000),
-          expired: false,
-          fileSize: '1.8 MB',
-          ipAddress: '192.168.1.105',
-          notes: 'GDPR compliance matrix for data protection review'
-        },
-        {
-          _id: '10',
-          exportId: 'EXP-2026-000110',
-          watermark: 'AUD-2026-007850',
-          type: 'audit',
-          format: 'pdf',
-          status: 'completed',
-          filename: 'audit-summary-AUD-2026-007850.pdf',
-          recordCount: 3150,
-          requestedBy: 'James Rodriguez',
-          requestedByEmail: 'james.rodriguez@laundrylobby.com',
-          requestedAt: new Date(Date.now() - 28800000),
-          completedAt: new Date(Date.now() - 28200000),
-          downloadedAt: new Date(Date.now() - 25200000),
-          downloadCount: 2,
-          expiresAt: new Date(Date.now() + 57600000),
-          expired: false,
-          fileSize: '5.4 MB',
-          ipAddress: '10.0.0.45'
-        }
-      ]
-      setRecords(mockRecords)
-      setTotalPages(3)
-
-      // Calculate stats from mock data
-      setStats({
-        totalExports: mockRecords.length,
-        pdfExports: mockRecords.filter(r => r.format === 'pdf').length,
-        csvExports: mockRecords.filter(r => r.format === 'csv').length,
-        excelExports: mockRecords.filter(r => r.format === 'excel').length,
-        expiredExports: mockRecords.filter(r => r.expired || r.status === 'expired').length,
-        failedExports: mockRecords.filter(r => r.status === 'failed').length
-      })
+      setError('Failed to load export history. Please try again.')
+      setRecords([])
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
@@ -386,6 +176,14 @@ export default function ExportHistoryPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchExportHistory} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-600 via-blue-600 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
@@ -733,7 +531,11 @@ export default function ExportHistoryPage() {
                             <button
                               className="text-indigo-600 hover:text-indigo-900 flex items-center text-xs font-medium"
                               onClick={() => {
-                                alert(`Downloading export: ${record.watermark}`)
+                                const link = document.createElement('a')
+                                link.href = (record as any).downloadUrl || `/api/export/${record._id}/download`
+                                link.download = record.filename || `export-${record._id}.csv`
+                                link.click()
+                                toast.success('Download started')
                               }}
                             >
                               <Download className="w-4 h-4 mr-1" />
@@ -743,7 +545,7 @@ export default function ExportHistoryPage() {
                           <button
                             className="text-gray-600 hover:text-gray-900 flex items-center text-xs font-medium"
                             onClick={() => {
-                              alert(`Export Details:\n\nExport ID: ${record.exportId}\nWatermark: ${record.watermark}\nType: ${record.type}\nFormat: ${record.format}\nStatus: ${record.status}\nRecords: ${record.recordCount.toLocaleString()}\nRequested By: ${record.requestedBy} (${record.requestedByEmail})\nFile Size: ${record.fileSize || 'N/A'}\nIP Address: ${record.ipAddress}\nDownload Count: ${record.downloadCount}\nNotes: ${record.notes || 'None'}`)
+                              toast.success(`Export: ${record.filename || record.watermark}`)
                             }}
                           >
                             <Eye className="w-4 h-4 mr-1" />

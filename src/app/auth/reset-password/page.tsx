@@ -4,19 +4,18 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { 
-  Shield, 
-  Lock, 
-  Eye, 
-  EyeOff, 
+import {
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
   AlertCircle,
   CheckCircle,
   Loader2,
   ArrowLeft,
   XCircle
 } from 'lucide-react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+import api from '@/lib/api'
 
 export default function ResetPassword() {
   const router = useRouter()
@@ -68,23 +67,7 @@ export default function ResetPassword() {
     setError('')
 
     try {
-      const response = await fetch(`${API_URL}/superadmin/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          password: formData.password
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset password')
-      }
-
+      await api.post('/superadmin/auth/reset-password', { token, password: formData.password })
       setSuccess(true)
       
       // Redirect to login after 3 seconds

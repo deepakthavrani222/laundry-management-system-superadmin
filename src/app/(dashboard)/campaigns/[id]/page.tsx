@@ -17,6 +17,7 @@ import {
   Copy,
   Calendar,
   Users,
+  Users2,
   DollarSign,
   Target,
   TrendingUp,
@@ -57,8 +58,6 @@ export default function CampaignDetailsPage() {
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this campaign?')) return
-    
     const result = await deleteCampaign(campaignId)
     if (result.success) {
       router.push('/campaigns')

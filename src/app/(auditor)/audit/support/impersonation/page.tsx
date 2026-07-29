@@ -161,197 +161,15 @@ export default function ImpersonationLogsPage() {
       
     } catch (error) {
       console.error('Error fetching impersonation logs:', error)
-      // Fallback to mock data
-      const mockLogs: ImpersonationLog[] = [
-        {
-          _id: '1',
-          sessionId: 'IMP-2024-001',
-          impersonator: {
-            id: 'support1',
-            name: 'Sarah Johnson',
-            email: 'sarah@laundrylobby.com',
-            role: 'Platform Support',
-            ipAddress: '192.168.1.100',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          },
-          targetUser: {
-            id: 'user1',
-            name: 'John Smith',
-            email: 'john@quickwash.com',
-            role: 'Customer',
-            tenantId: 'tenant1',
-            tenantName: 'QuickWash Laundromat'
-          },
-          impersonationReason: 'customer_support',
-          approvalStatus: 'manager_approved',
-          approvedBy: {
-            id: 'manager1',
-            name: 'Mike Wilson',
-            email: 'mike@laundrylobby.com',
-            role: 'Support Manager'
-          },
-          session: {
-            startedAt: new Date(2024, 0, 15, 14, 30),
-            endedAt: new Date(2024, 0, 15, 14, 45),
-            duration: 15,
-            status: 'ended',
-            terminationReason: 'manual'
-          },
-          activities: [
-            {
-              id: 'act1',
-              timestamp: new Date(2024, 0, 15, 14, 32),
-              action: 'View Order History',
-              resource: '/orders',
-              details: 'Accessed customer order history to investigate payment issue',
-              riskLevel: 'low',
-              ipAddress: '192.168.1.100'
-            },
-            {
-              id: 'act2',
-              timestamp: new Date(2024, 0, 15, 14, 35),
-              action: 'Update Payment Method',
-              resource: '/payment-methods',
-              details: 'Updated expired credit card information',
-              riskLevel: 'medium',
-              ipAddress: '192.168.1.100'
-            },
-            {
-              id: 'act3',
-              timestamp: new Date(2024, 0, 15, 14, 40),
-              action: 'Process Refund',
-              resource: '/refunds',
-              details: 'Processed $25.50 refund for failed order',
-              riskLevel: 'high',
-              ipAddress: '192.168.1.100'
-            }
-          ],
-          security: {
-            riskScore: 6.5,
-            flaggedActivities: 1,
-            sensitiveDataAccessed: true,
-            privilegeEscalation: false,
-            unusualBehavior: false,
-            complianceViolations: []
-          },
-          compliance: {
-            gdprNotificationSent: true,
-            auditTrailComplete: true,
-            customerConsent: true,
-            dataAccessLogged: true,
-            retentionPolicyApplied: true
-          },
-          monitoring: {
-            screenshotsTaken: 8,
-            keystrokesLogged: true,
-            networkActivityMonitored: true,
-            fileAccessTracked: true,
-            alertsTriggered: ['sensitive_data_access']
-          },
-          metadata: {
-            createdAt: new Date(2024, 0, 15, 14, 30),
-            updatedAt: new Date(2024, 0, 15, 14, 45),
-            version: 1
-          }
-        },
-        {
-          _id: '2',
-          sessionId: 'IMP-2024-002',
-          impersonator: {
-            id: 'support2',
-            name: 'David Chen',
-            email: 'david@laundrylobby.com',
-            role: 'Senior Support Engineer',
-            ipAddress: '192.168.1.105',
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-          },
-          targetUser: {
-            id: 'admin1',
-            name: 'Lisa Rodriguez',
-            email: 'lisa@cleanco.com',
-            role: 'Tenant Admin',
-            tenantId: 'tenant2',
-            tenantName: 'CleanCo Services'
-          },
-          impersonationReason: 'technical_assistance',
-          approvalStatus: 'auto_approved',
-          session: {
-            startedAt: new Date(2024, 0, 16, 9, 15),
-            endedAt: new Date(2024, 0, 16, 10, 30),
-            duration: 75,
-            status: 'ended',
-            terminationReason: 'manual'
-          },
-          activities: [
-            {
-              id: 'act4',
-              timestamp: new Date(2024, 0, 16, 9, 20),
-              action: 'Access System Settings',
-              resource: '/settings',
-              details: 'Reviewed integration configuration settings',
-              riskLevel: 'medium',
-              ipAddress: '192.168.1.105'
-            },
-            {
-              id: 'act5',
-              timestamp: new Date(2024, 0, 16, 9, 45),
-              action: 'Update API Configuration',
-              resource: '/integrations/api',
-              details: 'Fixed webhook endpoint configuration',
-              riskLevel: 'high',
-              ipAddress: '192.168.1.105'
-            },
-            {
-              id: 'act6',
-              timestamp: new Date(2024, 0, 16, 10, 15),
-              action: 'Test Integration',
-              resource: '/integrations/test',
-              details: 'Performed integration test to verify fix',
-              riskLevel: 'low',
-              ipAddress: '192.168.1.105'
-            }
-          ],
-          security: {
-            riskScore: 7.2,
-            flaggedActivities: 2,
-            sensitiveDataAccessed: true,
-            privilegeEscalation: true,
-            unusualBehavior: false,
-            complianceViolations: ['admin_access_without_explicit_approval']
-          },
-          compliance: {
-            gdprNotificationSent: true,
-            auditTrailComplete: true,
-            customerConsent: false,
-            dataAccessLogged: true,
-            retentionPolicyApplied: true
-          },
-          monitoring: {
-            screenshotsTaken: 15,
-            keystrokesLogged: true,
-            networkActivityMonitored: true,
-            fileAccessTracked: true,
-            alertsTriggered: ['privilege_escalation', 'admin_access']
-          },
-          metadata: {
-            createdAt: new Date(2024, 0, 16, 9, 15),
-            updatedAt: new Date(2024, 0, 16, 10, 30),
-            version: 1
-          }
-        }
-      ]
-
-      const mockStats = {
-        totalSessions: 89,
-        activeSessions: 3,
-        highRiskSessions: 12,
-        avgDuration: 28.5,
-        complianceRate: 94.3,
-        flaggedActivities: 23
-      }
-
-      setLogs(mockLogs)
-      setStats(mockStats)
+      setLogs([])
+      setStats({
+        totalSessions: 0,
+        activeSessions: 0,
+        highRiskSessions: 0,
+        avgDuration: 0,
+        complianceRate: 0,
+        flaggedActivities: 0
+      })
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -859,6 +677,11 @@ export default function ImpersonationLogsPage() {
             </div>
           </div>
         ))}
+        {logs.length === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <p className="text-gray-500">No impersonation logs found</p>
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

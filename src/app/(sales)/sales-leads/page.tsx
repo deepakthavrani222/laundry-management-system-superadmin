@@ -93,7 +93,7 @@ export default function LeadsPage() {
           <p className="text-gray-600 mt-1">Manage all business leads and conversions</p>
         </div>
         <Link
-          href="/sales/leads/create"
+          href="/sales-leads/create"
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -238,7 +238,7 @@ export default function LeadsPage() {
             </p>
             <div className="mt-6">
               <Link
-                href="/sales/leads/create"
+                href="/sales-leads/create"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 mr-2" />

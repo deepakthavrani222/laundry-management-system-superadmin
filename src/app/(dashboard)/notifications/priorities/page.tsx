@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  AlertTriangle, 
-  AlertCircle, 
-  Info, 
-  Bell, 
-  Settings, 
-  Save, 
+import {
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  Bell,
+  Settings,
+  Save,
   RefreshCw,
   Plus,
   Trash2,
@@ -19,6 +19,8 @@ import {
   Shield,
   DollarSign
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface PriorityRule {
   id: string
@@ -108,105 +110,48 @@ const priorityConfig = {
 export default function NotificationPrioritiesPage() {
   const [rules, setRules] = useState<PriorityRule[]>([])
   const [stats, setStats] = useState<PriorityStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'rules' | 'stats' | 'test'>('overview')
-  const [editingRule, setEditingRule] = useState<PriorityRule | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
 
-  // Mock data - replace with actual API calls
-  useEffect(() => {
-    const mockRules: PriorityRule[] = [
-      {
-        id: '1',
-        priority: 'P0',
-        name: 'Payment Fraud Detection',
-        description: 'Critical security alerts for payment fraud',
-        events: ['payment_fraud_detected', 'security_breach', 'cross_tenant_access_detected'],
-        keywords: ['fraud', 'breach', 'security', 'critical'],
-        conditions: {
-          amountThreshold: 10000,
-          securityLevel: 'critical'
-        },
-        isActive: true,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-20T15:30:00Z'
-      },
-      {
-        id: '2',
-        priority: 'P1',
-        name: 'Payment Failures',
-        description: 'High priority payment processing issues',
-        events: ['payment_failed', 'order_stuck', 'subscription_expired'],
-        keywords: ['failed', 'stuck', 'expired'],
-        conditions: {
-          amountThreshold: 1000,
-          businessImpact: 'high'
-        },
-        isActive: true,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-18T12:00:00Z'
-      },
-      {
-        id: '3',
-        priority: 'P2',
-        name: 'Order Updates',
-        description: 'Standard order processing notifications',
-        events: ['order_updated', 'pickup_scheduled', 'refund_initiated'],
-        keywords: ['updated', 'scheduled', 'initiated'],
-        conditions: {
-          amountThreshold: 100,
-          businessImpact: 'medium'
-        },
-        isActive: true,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-16T09:15:00Z'
-      }
-    ]
-
-    const mockStats: PriorityStats = {
-      totalNotifications: 15420,
-      byPriority: {
-        P0: 23,
-        P1: 156,
-        P2: 2341,
-        P3: 8920,
-        P4: 3980
-      },
-      averageResponseTime: {
-        P0: 2.5,
-        P1: 45,
-        P2: 180,
-        P3: 720,
-        P4: 0
-      },
-      classificationAccuracy: 96.8
-    }
-
-    setTimeout(() => {
-      setRules(mockRules)
-      setStats(mockStats)
+  const fetchRules = async () => {
+    try {
+      const res = await api.get('/superadmin/notifications/priorities')
+      const d = res.data?.data || res.data
+      setRules(Array.isArray(d) ? d : [])
+    } catch {
+      setRules([])
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }
+
+  useEffect(() => {
+    fetchRules()
   }, [])
 
-  const handleSaveRule = (rule: PriorityRule) => {
-    if (editingRule) {
-      setRules(rules.map(r => r.id === rule.id ? rule : r))
-    } else {
-      setRules([...rules, { ...rule, id: Date.now().toString() }])
-    }
-    setEditingRule(null)
+  const handleSaveRule = async (rule: PriorityRule) => {
+    try {
+      await api.post('/superadmin/notifications/priorities', rule)
+      toast.success('Priority rule saved')
+      fetchRules()
+    } catch { toast.error('Failed to save rule') }
     setShowCreateModal(false)
   }
 
-  const handleDeleteRule = (ruleId: string) => {
-    setRules(rules.filter(r => r.id !== ruleId))
+  const handleDeleteRule = async (id: string) => {
+    try {
+      await api.delete(`/superadmin/notifications/priorities/${id}`)
+      toast.success('Rule deleted')
+      fetchRules()
+    } catch { toast.error('Failed to delete rule') }
   }
 
-  const handleToggleRule = (ruleId: string) => {
-    setRules(rules.map(r => 
-      r.id === ruleId ? { ...r, isActive: !r.isActive } : r
-    ))
+  const handleToggleRule = async (id: string, isActive?: boolean) => {
+    try {
+      await api.patch(`/superadmin/notifications/priorities/${id}`, { isActive })
+      fetchRules()
+    } catch { toast.error('Failed to update rule') }
   }
 
   if (loading) {
@@ -271,7 +216,7 @@ export default function NotificationPrioritiesPage() {
               const Icon = config.icon
               const count = stats?.byPriority[priority as keyof typeof stats.byPriority] || 0
               const responseTime = stats?.averageResponseTime[priority as keyof typeof stats.averageResponseTime] || 0
-              
+
               return (
                 <div key={priority} className={`p-4 rounded-lg border ${config.bgColor} ${config.borderColor}`}>
                   <div className="flex items-center justify-between mb-2">
@@ -297,8 +242,8 @@ export default function NotificationPrioritiesPage() {
                 <h3 className="text-lg font-medium text-gray-900">Classification Accuracy</h3>
                 <BarChart3 className="w-5 h-5 text-blue-600" />
               </div>
-              <div className="text-3xl font-bold text-green-600 mb-2">{stats?.classificationAccuracy}%</div>
-              <p className="text-sm text-gray-600">Automatic classification accuracy</p>
+              <div className="text-3xl font-bold text-gray-400 mb-2">N/A</div>
+              <p className="text-sm text-gray-600">Data not yet available</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -306,8 +251,8 @@ export default function NotificationPrioritiesPage() {
                 <h3 className="text-lg font-medium text-gray-900">Total Notifications</h3>
                 <Bell className="w-5 h-5 text-blue-600" />
               </div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">{stats?.totalNotifications.toLocaleString()}</div>
-              <p className="text-sm text-gray-600">Last 30 days</p>
+              <div className="text-3xl font-bold text-gray-400 mb-2">N/A</div>
+              <p className="text-sm text-gray-600">Data not yet available</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -378,144 +323,73 @@ export default function NotificationPrioritiesPage() {
 
       {activeTab === 'rules' && (
         <div className="space-y-4">
-          {rules.map((rule) => {
-            const config = priorityConfig[rule.priority]
-            const Icon = config.icon
-            
-            return (
-              <div key={rule.id} className={`p-6 rounded-lg border ${config.bgColor} ${config.borderColor}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Icon className={`w-5 h-5 mr-3 ${config.textColor}`} />
-                    <div>
-                      <h3 className={`font-medium ${config.textColor}`}>{rule.name}</h3>
-                      <p className="text-sm text-gray-600">{rule.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      rule.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {rule.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                    <button
-                      onClick={() => setEditingRule(rule)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleToggleRule(rule.id)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRule(rule.id)}
-                      className="p-1 text-gray-400 hover:text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+          {rules.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+              <Settings className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No priority rules configured</h3>
+              <p className="text-gray-600">Priority rule management is coming soon.</p>
+            </div>
+          ) : (
+            rules.map((rule) => {
+              const config = priorityConfig[rule.priority]
+              const Icon = config.icon
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">Events:</span>
-                    <div className="mt-1 space-y-1">
-                      {rule.events.map((event, index) => (
-                        <span key={index} className="inline-block px-2 py-1 bg-white rounded text-xs mr-1 mb-1">
-                          {event}
-                        </span>
-                      ))}
+              return (
+                <div key={rule.id} className={`p-6 rounded-lg border ${config.bgColor} ${config.borderColor}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <Icon className={`w-5 h-5 mr-3 ${config.textColor}`} />
+                      <div>
+                        <h3 className={`font-medium ${config.textColor}`}>{rule.name}</h3>
+                        <p className="text-sm text-gray-600">{rule.description}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700">Keywords:</span>
-                    <div className="mt-1 space-y-1">
-                      {rule.keywords.map((keyword, index) => (
-                        <span key={index} className="inline-block px-2 py-1 bg-white rounded text-xs mr-1 mb-1">
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700">Conditions:</span>
-                    <div className="mt-1 text-xs text-gray-600">
-                      {rule.conditions.amountThreshold && (
-                        <div>Amount ≥ ${rule.conditions.amountThreshold.toLocaleString()}</div>
-                      )}
-                      {rule.conditions.securityLevel && (
-                        <div>Security: {rule.conditions.securityLevel}</div>
-                      )}
-                      {rule.conditions.businessImpact && (
-                        <div>Impact: {rule.conditions.businessImpact}</div>
-                      )}
-                      {rule.conditions.systemOnly && (
-                        <div>System only</div>
-                      )}
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        rule.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {rule.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <button
+                        onClick={() => toast('Notification priority rules management coming soon')}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleRule(rule.id, !rule.isActive)}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
       )}
 
       {activeTab === 'stats' && (
         <div className="space-y-6">
-          {/* Response Time Chart */}
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Average Response Times</h3>
-            <div className="space-y-4">
-              {Object.entries(priorityConfig).map(([priority, config]) => {
-                const responseTime = stats?.averageResponseTime[priority as keyof typeof stats.averageResponseTime] || 0
-                const maxTime = Math.max(...Object.values(stats?.averageResponseTime || {}))
-                const percentage = maxTime > 0 ? (responseTime / maxTime) * 100 : 0
-                
-                return (
-                  <div key={priority} className="flex items-center">
-                    <div className="w-16 text-sm font-medium">{priority}</div>
-                    <div className="flex-1 mx-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full bg-${config.color}-500`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-20 text-sm text-gray-600 text-right">
-                      {responseTime === 0 ? 'N/A' : `${responseTime} min`}
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+              Chart coming soon
             </div>
           </div>
 
-          {/* Classification Breakdown */}
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Priority Distribution</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {Object.entries(priorityConfig).map(([priority, config]) => {
-                const count = stats?.byPriority[priority as keyof typeof stats.byPriority] || 0
-                const total = stats?.totalNotifications || 1
-                const percentage = ((count / total) * 100).toFixed(1)
-                
-                return (
-                  <div key={priority} className="text-center">
-                    <div className={`w-16 h-16 mx-auto rounded-full ${config.bgColor} ${config.borderColor} border-2 flex items-center justify-center mb-2`}>
-                      <span className={`text-lg font-bold ${config.textColor}`}>{priority}</span>
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{count.toLocaleString()}</div>
-                    <div className="text-xs text-gray-500">{percentage}%</div>
-                  </div>
-                )
-              })}
+            <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+              Chart coming soon
             </div>
           </div>
         </div>
@@ -525,7 +399,7 @@ export default function NotificationPrioritiesPage() {
         <div className="bg-white p-6 rounded-lg border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Test Priority Classification</h3>
           <p className="text-gray-600 mb-6">Test how the system would classify different notification scenarios</p>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -533,7 +407,8 @@ export default function NotificationPrioritiesPage() {
                 <input
                   type="text"
                   placeholder="e.g., payment_failed"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
               </div>
               <div>
@@ -541,22 +416,55 @@ export default function NotificationPrioritiesPage() {
                 <input
                   type="number"
                   placeholder="e.g., 1500"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Message Content</label>
               <textarea
                 placeholder="e.g., Payment processing failed for order #12345"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-400 cursor-not-allowed"
               />
             </div>
-            
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-              Test Classification
+
+            <button
+              disabled
+              className="px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed"
+            >
+              Coming soon
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal — coming soon */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Create Priority Rule</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            <div className="py-6 text-center text-gray-500">
+              <Settings className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="font-medium text-gray-700 mb-1">Coming soon</p>
+              <p className="text-sm">Notification priority rules management is not yet available.</p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              Close
             </button>
           </div>
         </div>

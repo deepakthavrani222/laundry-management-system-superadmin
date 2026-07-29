@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuthStore } from '@/store/authStore'
-import { 
+import { useRouter } from 'next/navigation'
+import {
   Search,
   User,
   Building2,
@@ -44,6 +44,7 @@ interface CustomerInfo {
 }
 
 export default function CustomerLookupPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<CustomerInfo[]>([])
@@ -112,9 +113,8 @@ export default function CustomerLookupPage() {
     }
   }
 
-  const startChat = (customer: CustomerInfo) => {
-    // Implementation to start a new chat session
-    console.log('Starting chat with:', customer.name)
+  const startChat = (customer: any) => {
+    router.push(`/support/chat?customerId=${customer._id}&customerName=${encodeURIComponent(customer.name)}`)
   }
 
   return (

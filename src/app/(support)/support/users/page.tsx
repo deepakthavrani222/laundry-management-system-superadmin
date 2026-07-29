@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import api from '@/lib/api'
-import { 
+import toast from 'react-hot-toast'
+import {
   Users, 
   Search, 
   Filter, 
@@ -78,12 +79,12 @@ export default function UserAssistancePage() {
     setActionLoading(action)
     try {
       await api.post(`/support/users/${userId}/${action}`, { reason })
-      alert(`${action.replace('-', ' ')} completed successfully`)
+      toast.success(`${action.replace('-', ' ')} completed successfully`)
       loadUsers()
     } catch (err: any) {
       console.error(`Failed to ${action}:`, err)
       const msg = err?.response?.data?.message || err?.message || `Failed to ${action.replace('-', ' ')}`
-      alert(msg)
+      toast.error(msg)
     } finally {
       setActionLoading(null)
     }

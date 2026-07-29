@@ -58,19 +58,9 @@ export default function FinanceLayout({
     const timer = setTimeout(() => {
       const currentState = useAuthStore.getState()
 
-      console.log('🔐 Finance Layout Auth Check:', {
-        isAuthenticated: currentState.isAuthenticated,
-        userType: currentState.userType,
-        isValidating,
-        hasToken: !!currentState.token,
-        hasUser: !!currentState.user
-      })
-
       if (!isValidating && !currentState.isAuthenticated && !currentState.token) {
-        console.log('🔐 Not authenticated, redirecting to login')
         router.push('/auth/login')
       } else if (!isValidating && currentState.userType !== 'finance' && currentState.userType !== 'superadmin') {
-        console.log('🔐 Wrong user type, redirecting to dashboard')
         router.push('/dashboard')
       }
     }, 200)

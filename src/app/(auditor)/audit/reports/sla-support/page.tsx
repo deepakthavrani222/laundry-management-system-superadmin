@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import {
   MessageSquare,
@@ -100,109 +99,16 @@ export default function SLASupportReportsPage() {
 
     } catch (error) {
       console.error('Error fetching SLA support reports:', error)
-      // Fallback to mock data
-      const mockReports: SLAReport[] = [
-        {
-          _id: '1',
-          period: 'March 2026',
-          totalTickets: 1247,
-          resolvedTickets: 1089,
-          pendingTickets: 112,
-          escalatedTickets: 46,
-          avgResponseTime: '12 min',
-          avgResolutionTime: '3.4 hrs',
-          slaComplianceRate: 94.7,
-          breachedSLAs: 66,
-          customerSatisfaction: 4.3,
-          topCategories: [
-            { category: 'Order Issues', count: 342, avgResolution: '2.1 hrs' },
-            { category: 'Payment & Billing', count: 278, avgResolution: '1.8 hrs' },
-            { category: 'Pickup & Delivery', count: 215, avgResolution: '4.5 hrs' },
-            { category: 'Garment Damage Claims', count: 167, avgResolution: '6.2 hrs' },
-            { category: 'Account & Login', count: 134, avgResolution: '0.9 hrs' },
-            { category: 'Subscription Management', count: 111, avgResolution: '1.4 hrs' }
-          ],
-          agentPerformance: [
-            { agentName: 'Priya Sharma', ticketsResolved: 189, avgTime: '2.8 hrs', satisfaction: 4.6 },
-            { agentName: 'Rahul Verma', ticketsResolved: 176, avgTime: '3.1 hrs', satisfaction: 4.4 },
-            { agentName: 'Anita Patel', ticketsResolved: 165, avgTime: '2.5 hrs', satisfaction: 4.7 },
-            { agentName: 'Vikram Singh', ticketsResolved: 158, avgTime: '3.6 hrs', satisfaction: 4.2 },
-            { agentName: 'Sneha Gupta', ticketsResolved: 142, avgTime: '2.9 hrs', satisfaction: 4.5 },
-            { agentName: 'Amit Kumar', ticketsResolved: 134, avgTime: '3.8 hrs', satisfaction: 4.1 }
-          ],
-          escalationDetails: [
-            { ticketId: 'TKT-2026-4521', reason: 'Garment lost during processing', escalatedTo: 'Operations Manager', time: '2 hrs ago', resolved: false },
-            { ticketId: 'TKT-2026-4498', reason: 'Repeated billing overcharge', escalatedTo: 'Finance Lead', time: '5 hrs ago', resolved: true },
-            { ticketId: 'TKT-2026-4475', reason: 'Delivery delayed by 48+ hours', escalatedTo: 'Logistics Head', time: '8 hrs ago', resolved: false },
-            { ticketId: 'TKT-2026-4462', reason: 'Color bleeding on premium garment', escalatedTo: 'Quality Assurance', time: '12 hrs ago', resolved: true },
-            { ticketId: 'TKT-2026-4438', reason: 'Customer data privacy concern', escalatedTo: 'Compliance Officer', time: '1 day ago', resolved: true },
-            { ticketId: 'TKT-2026-4415', reason: 'Subscription auto-renewal dispute', escalatedTo: 'Billing Manager', time: '1 day ago', resolved: false }
-          ],
-          tenantBreakdown: [
-            { tenantName: 'Clean & Fresh Laundry', tickets: 312, slaCompliance: 96.2, satisfaction: 4.5 },
-            { tenantName: 'QuickWash Services', tickets: 245, slaCompliance: 91.8, satisfaction: 4.1 },
-            { tenantName: 'Express Laundry Hub', tickets: 198, slaCompliance: 97.1, satisfaction: 4.6 },
-            { tenantName: 'SparkleClean Pro', tickets: 176, slaCompliance: 88.4, satisfaction: 3.9 },
-            { tenantName: 'WashMaster India', tickets: 164, slaCompliance: 93.5, satisfaction: 4.3 },
-            { tenantName: 'FreshFold Services', tickets: 152, slaCompliance: 95.8, satisfaction: 4.4 }
-          ]
-        },
-        {
-          _id: '2',
-          period: 'February 2026',
-          totalTickets: 1134,
-          resolvedTickets: 1012,
-          pendingTickets: 78,
-          escalatedTickets: 44,
-          avgResponseTime: '14 min',
-          avgResolutionTime: '3.7 hrs',
-          slaComplianceRate: 92.3,
-          breachedSLAs: 87,
-          customerSatisfaction: 4.2,
-          topCategories: [
-            { category: 'Order Issues', count: 298, avgResolution: '2.3 hrs' },
-            { category: 'Payment & Billing', count: 256, avgResolution: '2.0 hrs' },
-            { category: 'Pickup & Delivery', count: 201, avgResolution: '4.8 hrs' },
-            { category: 'Garment Damage Claims', count: 148, avgResolution: '6.5 hrs' },
-            { category: 'Account & Login', count: 121, avgResolution: '1.1 hrs' },
-            { category: 'Subscription Management', count: 110, avgResolution: '1.6 hrs' }
-          ],
-          agentPerformance: [
-            { agentName: 'Priya Sharma', ticketsResolved: 172, avgTime: '3.0 hrs', satisfaction: 4.5 },
-            { agentName: 'Rahul Verma', ticketsResolved: 164, avgTime: '3.3 hrs', satisfaction: 4.3 },
-            { agentName: 'Anita Patel', ticketsResolved: 155, avgTime: '2.7 hrs', satisfaction: 4.6 },
-            { agentName: 'Vikram Singh', ticketsResolved: 148, avgTime: '3.9 hrs', satisfaction: 4.1 },
-            { agentName: 'Sneha Gupta', ticketsResolved: 138, avgTime: '3.1 hrs', satisfaction: 4.4 },
-            { agentName: 'Amit Kumar', ticketsResolved: 125, avgTime: '4.0 hrs', satisfaction: 4.0 }
-          ],
-          escalationDetails: [
-            { ticketId: 'TKT-2026-3987', reason: 'Missing items from order batch', escalatedTo: 'Operations Manager', time: '3 days ago', resolved: true },
-            { ticketId: 'TKT-2026-3952', reason: 'Refund not processed after 7 days', escalatedTo: 'Finance Lead', time: '4 days ago', resolved: true },
-            { ticketId: 'TKT-2026-3921', reason: 'Wrong order delivered twice', escalatedTo: 'Logistics Head', time: '5 days ago', resolved: true },
-            { ticketId: 'TKT-2026-3898', reason: 'Stain not removed after re-wash', escalatedTo: 'Quality Assurance', time: '6 days ago', resolved: true }
-          ],
-          tenantBreakdown: [
-            { tenantName: 'Clean & Fresh Laundry', tickets: 287, slaCompliance: 94.1, satisfaction: 4.3 },
-            { tenantName: 'QuickWash Services', tickets: 223, slaCompliance: 89.5, satisfaction: 4.0 },
-            { tenantName: 'Express Laundry Hub', tickets: 184, slaCompliance: 95.8, satisfaction: 4.5 },
-            { tenantName: 'SparkleClean Pro', tickets: 162, slaCompliance: 86.2, satisfaction: 3.8 },
-            { tenantName: 'WashMaster India', tickets: 148, slaCompliance: 91.7, satisfaction: 4.2 },
-            { tenantName: 'FreshFold Services', tickets: 130, slaCompliance: 93.9, satisfaction: 4.3 }
-          ]
-        }
-      ]
-
-      const mockStats = {
-        totalTickets: 1247,
-        resolvedTickets: 1089,
-        slaComplianceRate: 94.7,
-        avgResponseTime: '12 min',
-        customerSatisfaction: 4.3,
-        escalationRate: 3.7
-      }
-
-      setReports(mockReports)
-      setStats(mockStats)
+      // Show empty state on API failure
+      setReports([])
+      setStats({
+        totalTickets: 0,
+        resolvedTickets: 0,
+        slaComplianceRate: 0,
+        avgResponseTime: '',
+        customerSatisfaction: 0,
+        escalationRate: 0
+      })
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -446,7 +352,7 @@ export default function SLASupportReportsPage() {
                           {cat.count.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                          {((cat.count / report.totalTickets) * 100).toFixed(1)}%
+                          {report.totalTickets > 0 ? ((cat.count / report.totalTickets) * 100).toFixed(1) : '0'}%
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="flex items-center text-sm text-gray-700">
@@ -684,7 +590,7 @@ export default function SLASupportReportsPage() {
                   <p>Average first response time is {stats.avgResponseTime}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Resolution Rate: {((stats.resolvedTickets / stats.totalTickets) * 100).toFixed(1)}%</p>
+                  <p className="font-medium">Resolution Rate: {stats.totalTickets > 0 ? ((stats.resolvedTickets / stats.totalTickets) * 100).toFixed(1) : '0'}%</p>
                   <p>{stats.resolvedTickets.toLocaleString()} of {stats.totalTickets.toLocaleString()} tickets resolved</p>
                 </div>
                 <div>

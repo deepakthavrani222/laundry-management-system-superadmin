@@ -64,8 +64,6 @@ export default function SupportDashboardPage() {
 
   const fetchSupportData = async () => {
     try {
-      console.log('🔄 Fetching support dashboard data...');
-      
       // Fetch real data from backend API
       const response = await api.get('/admin/support/dashboard')
       
@@ -105,7 +103,6 @@ export default function SupportDashboardPage() {
         }
         
         setStats(transformedStats)
-        console.log('✅ Support dashboard data loaded from API:', transformedStats);
       } else {
         throw new Error('Invalid API response')
       }

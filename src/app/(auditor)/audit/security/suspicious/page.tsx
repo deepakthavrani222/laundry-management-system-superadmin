@@ -90,6 +90,7 @@ interface SuspiciousPattern {
 export default function SuspiciousPatternsPage() {
   const [patterns, setPatterns] = useState<SuspiciousPattern[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState('all')
   const [selectedSeverity, setSelectedSeverity] = useState('all')
@@ -137,220 +138,8 @@ export default function SuspiciousPatternsPage() {
       
     } catch (error) {
       console.error('Error fetching suspicious patterns:', error)
-      // Fallback to mock data
-      const mockPatterns: SuspiciousPattern[] = [
-        {
-          _id: '1',
-          patternId: 'SP-2024-001',
-          type: 'login_anomaly',
-          severity: 'critical',
-          confidence: 94.5,
-          detectedAt: new Date(),
-          description: 'Multiple failed login attempts from different geographic locations within 5 minutes',
-          affectedEntities: {
-            users: ['user_123', 'user_456'],
-            tenants: ['tenant_001'],
-            ipAddresses: ['192.168.1.100', '10.0.0.1', '203.0.113.1'],
-            sessions: ['sess_abc123', 'sess_def456']
-          },
-          indicators: [
-            {
-              type: 'GEOGRAPHIC_IMPOSSIBILITY',
-              value: 'Login from India and USA within 2 minutes',
-              description: 'Physically impossible travel time between locations',
-              riskScore: 9
-            },
-            {
-              type: 'FAILED_ATTEMPTS',
-              value: '25 failed attempts in 5 minutes',
-              description: 'Brute force attack pattern detected',
-              riskScore: 8
-            },
-            {
-              type: 'VPN_USAGE',
-              value: 'Multiple VPN exit nodes detected',
-              description: 'Attempts to hide real location',
-              riskScore: 7
-            }
-          ],
-          timeline: [
-            {
-              timestamp: new Date(Date.now() - 300000),
-              event: 'FAILED_LOGIN',
-              details: 'Failed login from India (Mumbai)',
-              severity: 'medium'
-            },
-            {
-              timestamp: new Date(Date.now() - 180000),
-              event: 'FAILED_LOGIN',
-              details: 'Failed login from USA (New York)',
-              severity: 'high'
-            },
-            {
-              timestamp: new Date(Date.now() - 60000),
-              event: 'ACCOUNT_LOCKED',
-              details: 'Account automatically locked due to suspicious activity',
-              severity: 'critical'
-            }
-          ],
-          geolocation: {
-            country: 'Multiple',
-            region: 'Multiple',
-            city: 'Multiple',
-            coordinates: { lat: 0, lng: 0 },
-            vpnDetected: true,
-            proxyDetected: true
-          },
-          deviceFingerprint: {
-            userAgent: 'Multiple user agents detected',
-            browser: 'Chrome, Firefox, Safari',
-            os: 'Windows, Linux, macOS',
-            device: 'Desktop, Mobile',
-            screenResolution: 'Multiple resolutions',
-            timezone: 'Multiple timezones',
-            language: 'en-US, hi-IN'
-          },
-          riskAssessment: {
-            overallRisk: 9,
-            factors: [
-              { factor: 'Geographic Impossibility', weight: 0.3, score: 9 },
-              { factor: 'Failed Attempts', weight: 0.25, score: 8 },
-              { factor: 'VPN Usage', weight: 0.2, score: 7 },
-              { factor: 'Device Variation', weight: 0.15, score: 8 },
-              { factor: 'Time Pattern', weight: 0.1, score: 9 }
-            ],
-            recommendation: 'Immediate account suspension and security review required'
-          },
-          investigation: {
-            status: 'investigating',
-            assignedTo: 'security@laundrylobby.com',
-            notes: [
-              'Coordinated attack detected across multiple accounts',
-              'VPN and proxy usage suggests sophisticated threat actor',
-              'Account locked automatically by security system'
-            ],
-            actions: [
-              'Account suspended pending investigation',
-              'IP addresses blocked',
-              'Security team notified'
-            ]
-          },
-          relatedPatterns: ['SP-2024-002', 'SP-2024-003']
-        },
-        {
-          _id: '2',
-          patternId: 'SP-2024-002',
-          type: 'transaction_fraud',
-          severity: 'high',
-          confidence: 87.3,
-          detectedAt: new Date(Date.now() - 3600000),
-          description: 'Unusual transaction patterns suggesting payment fraud',
-          affectedEntities: {
-            users: ['user_789'],
-            tenants: ['tenant_002'],
-            ipAddresses: ['198.51.100.1'],
-            sessions: ['sess_ghi789']
-          },
-          indicators: [
-            {
-              type: 'VELOCITY_ANOMALY',
-              value: '50 transactions in 10 minutes',
-              description: 'Transaction velocity far exceeds normal patterns',
-              riskScore: 8
-            },
-            {
-              type: 'AMOUNT_PATTERN',
-              value: 'All transactions exactly ₹999',
-              description: 'Suspicious uniform transaction amounts',
-              riskScore: 7
-            },
-            {
-              type: 'CARD_TESTING',
-              value: 'Multiple failed payments with different cards',
-              description: 'Possible stolen card testing',
-              riskScore: 9
-            }
-          ],
-          timeline: [
-            {
-              timestamp: new Date(Date.now() - 3600000),
-              event: 'RAPID_TRANSACTIONS',
-              details: 'Started making rapid transactions',
-              severity: 'medium'
-            },
-            {
-              timestamp: new Date(Date.now() - 3300000),
-              event: 'CARD_FAILURES',
-              details: 'Multiple payment failures with different cards',
-              severity: 'high'
-            },
-            {
-              timestamp: new Date(Date.now() - 3000000),
-              event: 'PATTERN_DETECTED',
-              details: 'Fraud detection system triggered',
-              severity: 'critical'
-            }
-          ],
-          geolocation: {
-            country: 'India',
-            region: 'Maharashtra',
-            city: 'Pune',
-            coordinates: { lat: 18.5204, lng: 73.8567 },
-            vpnDetected: false,
-            proxyDetected: true
-          },
-          deviceFingerprint: {
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            browser: 'Chrome 120.0',
-            os: 'Windows 10',
-            device: 'Desktop',
-            screenResolution: '1920x1080',
-            timezone: 'Asia/Kolkata',
-            language: 'en-US'
-          },
-          riskAssessment: {
-            overallRisk: 8,
-            factors: [
-              { factor: 'Transaction Velocity', weight: 0.3, score: 8 },
-              { factor: 'Payment Failures', weight: 0.25, score: 9 },
-              { factor: 'Amount Patterns', weight: 0.2, score: 7 },
-              { factor: 'Card Testing', weight: 0.15, score: 9 },
-              { factor: 'Proxy Usage', weight: 0.1, score: 6 }
-            ],
-            recommendation: 'Block payment processing and review transaction history'
-          },
-          investigation: {
-            status: 'confirmed',
-            assignedTo: 'fraud@laundrylobby.com',
-            notes: [
-              'Confirmed fraudulent activity',
-              'Multiple stolen cards used',
-              'Account flagged for permanent suspension'
-            ],
-            actions: [
-              'Payment processing blocked',
-              'Account suspended',
-              'Law enforcement notified'
-            ],
-            resolvedAt: new Date(Date.now() - 1800000),
-            resolution: 'Confirmed fraud - account permanently suspended'
-          },
-          relatedPatterns: []
-        }
-      ]
-
-      const mockStats = {
-        totalPatterns: 0,
-        criticalPatterns: 23,
-        activeInvestigations: 45,
-        confirmedThreats: 78,
-        falsePositives: 12,
-        avgConfidence: 82.5,
-        topThreatType: 'login_anomaly'
-      }
-
-      setPatterns(mockPatterns)
-      setStats(mockStats)
+      setError('Failed to load suspicious patterns. Please try again.')
+      setPatterns([])
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -409,6 +198,14 @@ export default function SuspiciousPatternsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchSuspiciousPatterns} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 via-pink-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">

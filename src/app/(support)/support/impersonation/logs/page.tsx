@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { FileText, User, Clock, Shield, Search, Filter, Download, Eye, Calendar } from 'lucide-react'
+import toast from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface ImpersonationLog {
   id: string
@@ -40,13 +42,6 @@ export default function ImpersonationLogsPage() {
   const fetchLogs = async () => {
     try {
       setLoading(true)
-      
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
 
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -56,22 +51,9 @@ export default function ImpersonationLogsPage() {
         ...(searchTerm && { search: searchTerm })
       })
 
-      const response = await fetch(`http://localhost:5000/api/support/impersonation/logs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setLogs(data.data?.logs || [])
-        setTotalPages(Math.ceil((data.data?.total || 0) / logsPerPage))
-      } else {
-        console.error('Failed to fetch impersonation logs')
-        // For demo purposes, using empty array
-        setLogs([])
-      }
+      const response = await api.get(`/support/impersonation/logs?${params}`)
+      setLogs(response.data?.data?.logs || [])
+      setTotalPages(Math.ceil((response.data?.data?.total || 0) / logsPerPage))
     } catch (error) {
       console.error('Error fetching impersonation logs:', error)
       setLogs([])
@@ -82,13 +64,6 @@ export default function ImpersonationLogsPage() {
 
   const exportLogs = async () => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
       const params = new URLSearchParams({
         days: dateFilter,
         ...(statusFilter !== 'all' && { status: statusFilter }),
@@ -96,27 +71,21 @@ export default function ImpersonationLogsPage() {
         export: 'true'
       })
 
-      const response = await fetch(`http://localhost:5000/api/support/impersonation/logs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await api.get(`/support/impersonation/logs?${params}`, {
+        responseType: 'blob'
       })
 
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `impersonation-logs-${new Date().toISOString().split('T')[0]}.csv`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      }
+      const url = window.URL.createObjectURL(response.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `impersonation-logs-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
     } catch (error) {
       console.error('Error exporting logs:', error)
-      alert('Failed to export logs')
+      toast.error('Failed to export logs')
     }
   }
 

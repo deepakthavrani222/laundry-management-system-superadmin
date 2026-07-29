@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, Download } from 'lucide-react'
 import api from '@/lib/api'
 
@@ -26,6 +26,7 @@ interface UpgradeRequest {
 export default function PaymentSuccessPage() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const upgradeId = params.upgradeId as string
   const sessionId = searchParams.get('session_id')
 
@@ -41,6 +42,18 @@ export default function PaymentSuccessPage() {
       setLoading(false)
     }
   }, [upgradeId, sessionId])
+
+  useEffect(() => {
+    const verifyPayment = async () => {
+      try {
+        const { data } = await api.get(`/billing/payment-verify/${upgradeId}`)
+        if (!data.success) setError('Payment could not be verified')
+      } catch {
+        setError('Could not verify payment status')
+      }
+    }
+    if (upgradeId) verifyPayment()
+  }, [upgradeId])
 
   const fetchUpgradeRequest = async () => {
     try {
@@ -162,7 +175,7 @@ export default function PaymentSuccessPage() {
           </button>
           
           <button
-            onClick={() => window.close()}
+            onClick={() => router.push('/')}
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
             Continue to Dashboard

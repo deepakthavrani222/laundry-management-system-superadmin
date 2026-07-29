@@ -20,6 +20,8 @@ import {
   Star
 } from 'lucide-react'
 import Link from 'next/link'
+import api from '@/lib/api'
+import toast from 'react-hot-toast'
 
 interface PlatformRole {
   _id: string
@@ -47,26 +49,8 @@ export default function PlatformRolesPage() {
   const fetchPlatformRoles = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('auth-storage')
-      if (!token) throw new Error('No auth token found')
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) throw new Error('Invalid auth token')
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://laundrylobby-backend-1.vercel.app/api'
-      const response = await fetch(`${API_URL}/superadmin/rbac/roles`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
+      const response = await api.get('/superadmin/rbac/roles')
+      const data = response.data
       if (data.success) {
         setRoles(data.data.roles || [])
       } else {
@@ -87,6 +71,16 @@ export default function PlatformRolesPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // Implement search logic here
+  }
+
+  const handleDeleteRole = async (roleId: string) => {
+    try {
+      await api.delete(`/superadmin/rbac/roles/${roleId}`)
+      toast.success('Role deleted')
+      fetchPlatformRoles()
+    } catch {
+      toast.error('Failed to delete role')
+    }
   }
 
   const filteredRoles = roles.filter(role => {
@@ -289,10 +283,7 @@ export default function PlatformRolesPage() {
                     </Link>
                     {!role.isDefault && (
                       <button
-                        onClick={() => {
-                          // Handle delete
-                          console.log('Delete role:', role._id)
-                        }}
+                        onClick={() => handleDeleteRole(role._id)}
                         className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete Role"
                       >

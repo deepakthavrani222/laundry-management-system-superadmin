@@ -168,184 +168,15 @@ export default function SupportEscalationsPage() {
       
     } catch (error) {
       console.error('Error fetching escalations:', error)
-      // Fallback to mock data
-      const mockEscalations: SupportEscalation[] = [
-        {
-          _id: '1',
-          escalationId: 'ESC-2024-001',
-          ticketId: 'TKT-2024-1234',
-          ticketTitle: 'Payment Gateway Integration Issue - Critical Production Bug',
-          originalAssignee: {
-            id: 'support1',
-            name: 'Sarah Johnson',
-            email: 'sarah@laundrylobby.com',
-            role: 'Support Agent L1'
-          },
-          escalatedTo: {
-            id: 'support2',
-            name: 'Michael Chen',
-            email: 'michael@laundrylobby.com',
-            role: 'Senior Support Engineer',
-            level: 2
-          },
-          escalatedBy: {
-            id: 'support1',
-            name: 'Sarah Johnson',
-            email: 'sarah@laundrylobby.com',
-            role: 'Support Agent L1'
-          },
-          escalationReason: 'technical_expertise',
-          escalationLevel: 2,
-          priority: 'critical',
-          status: 'in_progress',
-          customer: {
-            id: 'cust1',
-            name: 'QuickWash Laundromat',
-            email: 'admin@quickwash.com',
-            tenantId: 'tenant1',
-            tenantName: 'QuickWash'
-          },
-          timeline: {
-            escalatedAt: new Date(2024, 0, 15, 14, 30),
-            acknowledgedAt: new Date(2024, 0, 15, 14, 45),
-          },
-          slaMetrics: {
-            originalSlaTarget: 4,
-            escalationTime: 2.5,
-            breachSeverity: 'major'
-          },
-          escalationDetails: {
-            reason: 'Technical Expertise Required',
-            description: 'Customer experiencing payment gateway failures affecting 80% of transactions. L1 support unable to diagnose root cause.',
-            urgencyJustification: 'Critical business impact - customer losing revenue due to failed payments',
-            expectedResolution: 'Identify and fix payment gateway integration issue within 2 hours',
-            customerImpact: 'High - 80% payment failure rate causing significant revenue loss',
-            businessImpact: 'Medium - Potential customer churn and reputation damage'
-          },
-          communications: [
-            {
-              id: 'comm1',
-              timestamp: new Date(2024, 0, 15, 14, 30),
-              from: 'Sarah Johnson',
-              to: 'Michael Chen',
-              message: 'Escalating due to technical complexity. Customer reports 80% payment failures.',
-              type: 'escalation'
-            },
-            {
-              id: 'comm2',
-              timestamp: new Date(2024, 0, 15, 14, 45),
-              from: 'Michael Chen',
-              to: 'Sarah Johnson',
-              message: 'Acknowledged. Investigating payment gateway logs now.',
-              type: 'internal'
-            }
-          ],
-          tags: ['payment', 'gateway', 'critical', 'production'],
-          metadata: {
-            createdAt: new Date(2024, 0, 15, 14, 30),
-            updatedAt: new Date(2024, 0, 15, 15, 15),
-            version: 1
-          }
-        },
-        {
-          _id: '2',
-          escalationId: 'ESC-2024-002',
-          ticketId: 'TKT-2024-1235',
-          ticketTitle: 'Customer Data Privacy Concern - GDPR Compliance',
-          originalAssignee: {
-            id: 'support3',
-            name: 'Emma Wilson',
-            email: 'emma@laundrylobby.com',
-            role: 'Support Agent L1'
-          },
-          escalatedTo: {
-            id: 'legal1',
-            name: 'David Rodriguez',
-            email: 'david@laundrylobby.com',
-            role: 'Legal & Compliance Manager',
-            level: 3
-          },
-          escalatedBy: {
-            id: 'support3',
-            name: 'Emma Wilson',
-            email: 'emma@laundrylobby.com',
-            role: 'Support Agent L1'
-          },
-          escalationReason: 'policy_violation',
-          escalationLevel: 3,
-          priority: 'high',
-          status: 'resolved',
-          customer: {
-            id: 'cust2',
-            name: 'CleanCo Services',
-            email: 'privacy@cleanco.com',
-            tenantId: 'tenant2',
-            tenantName: 'CleanCo'
-          },
-          timeline: {
-            escalatedAt: new Date(2024, 0, 14, 10, 15),
-            acknowledgedAt: new Date(2024, 0, 14, 10, 30),
-            resolvedAt: new Date(2024, 0, 14, 16, 45)
-          },
-          slaMetrics: {
-            originalSlaTarget: 24,
-            escalationTime: 1.5,
-            resolutionTime: 6.5,
-            breachSeverity: 'none'
-          },
-          escalationDetails: {
-            reason: 'GDPR Compliance Issue',
-            description: 'Customer requesting data deletion under GDPR Article 17 (Right to Erasure). Complex case involving multiple data systems.',
-            urgencyJustification: 'Legal compliance requirement with potential regulatory implications',
-            expectedResolution: 'Complete data erasure within GDPR 30-day timeframe',
-            customerImpact: 'Medium - Customer exercising legal rights',
-            businessImpact: 'High - Regulatory compliance and potential fines'
-          },
-          resolutionDetails: {
-            resolution: 'Successfully processed GDPR data deletion request across all systems. Provided confirmation certificate to customer.',
-            resolutionType: 'resolved',
-            satisfactionScore: 5,
-            followUpRequired: false,
-            lessonsLearned: 'Need automated GDPR deletion workflow to reduce manual processing time'
-          },
-          communications: [
-            {
-              id: 'comm3',
-              timestamp: new Date(2024, 0, 14, 10, 15),
-              from: 'Emma Wilson',
-              to: 'David Rodriguez',
-              message: 'GDPR deletion request requires legal review and multi-system coordination.',
-              type: 'escalation'
-            },
-            {
-              id: 'comm4',
-              timestamp: new Date(2024, 0, 14, 16, 45),
-              from: 'David Rodriguez',
-              to: 'Emma Wilson',
-              message: 'Data deletion completed. Customer notified with confirmation certificate.',
-              type: 'internal'
-            }
-          ],
-          tags: ['gdpr', 'privacy', 'legal', 'compliance'],
-          metadata: {
-            createdAt: new Date(2024, 0, 14, 10, 15),
-            updatedAt: new Date(2024, 0, 14, 16, 45),
-            version: 2
-          }
-        }
-      ]
-
-      const mockStats = {
+      setEscalations([])
+      setStats({
         totalEscalations: 0,
-        activeEscalations: 23,
-        avgResolutionTime: 4.2,
-        escalationRate: 12.5,
-        slaBreaches: 8,
-        customerSatisfaction: 4.3
-      }
-
-      setEscalations(mockEscalations)
-      setStats(mockStats)
+        activeEscalations: 0,
+        avgResolutionTime: 0,
+        escalationRate: 0,
+        slaBreaches: 0,
+        customerSatisfaction: 0
+      })
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -801,6 +632,11 @@ export default function SupportEscalationsPage() {
             </div>
           </div>
         ))}
+        {escalations.length === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <p className="text-gray-500">No escalations found</p>
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

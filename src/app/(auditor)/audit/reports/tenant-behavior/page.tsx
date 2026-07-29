@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import {
   BarChart3,
@@ -67,6 +66,7 @@ interface TenantBehavior {
 export default function TenantBehaviorPage() {
   const [tenants, setTenants] = useState<TenantBehavior[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [sortBy, setSortBy] = useState('healthScore')
@@ -109,295 +109,8 @@ export default function TenantBehaviorPage() {
 
     } catch (error) {
       console.error('Error fetching tenant behavior data:', error)
-      // Fallback to mock data
-      const mockTenants: TenantBehavior[] = [
-        {
-          _id: '1',
-          tenantId: 'TNT-001',
-          businessName: 'SparkleWash Laundry Co.',
-          subdomain: 'sparklewash',
-          metrics: {
-            totalOrders: 12847,
-            totalRevenue: 384520.75,
-            avgOrderValue: 29.93,
-            orderGrowth: 18.5,
-            revenueGrowth: 22.3,
-            activeUsers: 3240,
-            newUsers: 485,
-            retentionRate: 87.2,
-            avgResponseTime: 1.8
-          },
-          patterns: {
-            peakHours: ['9:00 AM', '12:00 PM', '6:00 PM'],
-            busiestDays: ['Monday', 'Wednesday', 'Saturday'],
-            seasonalTrend: 'upward',
-            customerSegments: [
-              { segment: 'Regular Residential', count: 1850, revenue: 185420.50 },
-              { segment: 'Premium Dry Clean', count: 620, revenue: 124800.00 },
-              { segment: 'Commercial Accounts', count: 180, revenue: 54300.25 },
-              { segment: 'Subscription Plans', count: 590, revenue: 20000.00 }
-            ]
-          },
-          compliance: {
-            dataRetention: true,
-            privacyCompliant: true,
-            securityScore: 92,
-            lastAudit: new Date(2024, 1, 15)
-          },
-          anomalies: [
-            {
-              type: 'usage_spike',
-              description: 'Order volume increased 45% above normal on weekends',
-              severity: 'low',
-              detectedAt: new Date(2024, 2, 10)
-            }
-          ],
-          riskScore: 12,
-          healthScore: 94,
-          status: 'healthy'
-        },
-        {
-          _id: '2',
-          tenantId: 'TNT-002',
-          businessName: 'FreshFold Express',
-          subdomain: 'freshfold',
-          metrics: {
-            totalOrders: 8432,
-            totalRevenue: 218640.30,
-            avgOrderValue: 25.93,
-            orderGrowth: 5.2,
-            revenueGrowth: 3.8,
-            activeUsers: 1890,
-            newUsers: 210,
-            retentionRate: 72.4,
-            avgResponseTime: 3.2
-          },
-          patterns: {
-            peakHours: ['10:00 AM', '2:00 PM', '7:00 PM'],
-            busiestDays: ['Tuesday', 'Thursday', 'Sunday'],
-            seasonalTrend: 'stable',
-            customerSegments: [
-              { segment: 'Regular Residential', count: 1200, revenue: 112340.00 },
-              { segment: 'Express Wash', count: 450, revenue: 67500.30 },
-              { segment: 'Bulk Orders', count: 140, revenue: 28800.00 },
-              { segment: 'Walk-in Customers', count: 100, revenue: 10000.00 }
-            ]
-          },
-          compliance: {
-            dataRetention: true,
-            privacyCompliant: true,
-            securityScore: 78,
-            lastAudit: new Date(2024, 0, 20)
-          },
-          anomalies: [
-            {
-              type: 'retention_drop',
-              description: 'Customer retention decreased by 8% over the last 30 days',
-              severity: 'medium',
-              detectedAt: new Date(2024, 2, 5)
-            },
-            {
-              type: 'response_time',
-              description: 'Average response time exceeded 3 seconds threshold',
-              severity: 'medium',
-              detectedAt: new Date(2024, 2, 8)
-            }
-          ],
-          riskScore: 38,
-          healthScore: 68,
-          status: 'warning'
-        },
-        {
-          _id: '3',
-          tenantId: 'TNT-003',
-          businessName: 'CleanStar Laundromat',
-          subdomain: 'cleanstar',
-          metrics: {
-            totalOrders: 3215,
-            totalRevenue: 72540.90,
-            avgOrderValue: 22.56,
-            orderGrowth: -12.4,
-            revenueGrowth: -15.7,
-            activeUsers: 640,
-            newUsers: 42,
-            retentionRate: 51.3,
-            avgResponseTime: 5.8
-          },
-          patterns: {
-            peakHours: ['11:00 AM', '4:00 PM'],
-            busiestDays: ['Saturday', 'Sunday'],
-            seasonalTrend: 'downward',
-            customerSegments: [
-              { segment: 'Regular Residential', count: 420, revenue: 42120.00 },
-              { segment: 'Self-Service', count: 150, revenue: 18900.90 },
-              { segment: 'Drop-off Service', count: 70, revenue: 11520.00 }
-            ]
-          },
-          compliance: {
-            dataRetention: false,
-            privacyCompliant: true,
-            securityScore: 54,
-            lastAudit: new Date(2023, 9, 10)
-          },
-          anomalies: [
-            {
-              type: 'revenue_decline',
-              description: 'Consistent revenue decline over 3 consecutive months',
-              severity: 'high',
-              detectedAt: new Date(2024, 1, 28)
-            },
-            {
-              type: 'security_risk',
-              description: 'Security score dropped below 60 threshold',
-              severity: 'high',
-              detectedAt: new Date(2024, 2, 1)
-            },
-            {
-              type: 'compliance_gap',
-              description: 'Data retention policy not implemented',
-              severity: 'critical',
-              detectedAt: new Date(2024, 2, 3)
-            }
-          ],
-          riskScore: 72,
-          healthScore: 35,
-          status: 'critical'
-        },
-        {
-          _id: '4',
-          tenantId: 'TNT-004',
-          businessName: 'AquaPress Dry Cleaners',
-          subdomain: 'aquapress',
-          metrics: {
-            totalOrders: 0,
-            totalRevenue: 0,
-            avgOrderValue: 0,
-            orderGrowth: 0,
-            revenueGrowth: 0,
-            activeUsers: 0,
-            newUsers: 0,
-            retentionRate: 0,
-            avgResponseTime: 0
-          },
-          patterns: {
-            peakHours: [],
-            busiestDays: [],
-            seasonalTrend: 'none',
-            customerSegments: []
-          },
-          compliance: {
-            dataRetention: false,
-            privacyCompliant: false,
-            securityScore: 0,
-            lastAudit: new Date(2023, 6, 15)
-          },
-          anomalies: [
-            {
-              type: 'inactivity',
-              description: 'No activity detected for over 90 days',
-              severity: 'medium',
-              detectedAt: new Date(2024, 1, 1)
-            }
-          ],
-          riskScore: 45,
-          healthScore: 0,
-          status: 'inactive'
-        },
-        {
-          _id: '5',
-          tenantId: 'TNT-005',
-          businessName: 'Urban Threads Laundry',
-          subdomain: 'urbanthreads',
-          metrics: {
-            totalOrders: 19654,
-            totalRevenue: 548720.40,
-            avgOrderValue: 27.92,
-            orderGrowth: 24.7,
-            revenueGrowth: 28.9,
-            activeUsers: 4850,
-            newUsers: 920,
-            retentionRate: 91.6,
-            avgResponseTime: 1.2
-          },
-          patterns: {
-            peakHours: ['8:00 AM', '12:00 PM', '5:00 PM', '8:00 PM'],
-            busiestDays: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
-            seasonalTrend: 'upward',
-            customerSegments: [
-              { segment: 'Regular Residential', count: 2800, revenue: 252000.00 },
-              { segment: 'Premium Service', count: 950, revenue: 152000.40 },
-              { segment: 'Corporate Contracts', count: 320, revenue: 96000.00 },
-              { segment: 'Subscription Plans', count: 780, revenue: 48720.00 }
-            ]
-          },
-          compliance: {
-            dataRetention: true,
-            privacyCompliant: true,
-            securityScore: 96,
-            lastAudit: new Date(2024, 2, 1)
-          },
-          anomalies: [],
-          riskScore: 6,
-          healthScore: 98,
-          status: 'healthy'
-        },
-        {
-          _id: '6',
-          tenantId: 'TNT-006',
-          businessName: 'BrightSpin Wash House',
-          subdomain: 'brightspin',
-          metrics: {
-            totalOrders: 6120,
-            totalRevenue: 153000.60,
-            avgOrderValue: 25.00,
-            orderGrowth: -2.1,
-            revenueGrowth: -0.5,
-            activeUsers: 1420,
-            newUsers: 158,
-            retentionRate: 68.9,
-            avgResponseTime: 2.9
-          },
-          patterns: {
-            peakHours: ['10:00 AM', '1:00 PM', '5:00 PM'],
-            busiestDays: ['Wednesday', 'Friday', 'Saturday'],
-            seasonalTrend: 'stable',
-            customerSegments: [
-              { segment: 'Regular Residential', count: 900, revenue: 81000.00 },
-              { segment: 'Self-Service', count: 320, revenue: 38400.60 },
-              { segment: 'Pickup & Delivery', count: 200, revenue: 33600.00 }
-            ]
-          },
-          compliance: {
-            dataRetention: true,
-            privacyCompliant: true,
-            securityScore: 71,
-            lastAudit: new Date(2024, 0, 5)
-          },
-          anomalies: [
-            {
-              type: 'growth_stall',
-              description: 'Order growth has stagnated for 2 consecutive months',
-              severity: 'medium',
-              detectedAt: new Date(2024, 2, 12)
-            }
-          ],
-          riskScore: 32,
-          healthScore: 62,
-          status: 'warning'
-        }
-      ]
-
-      const mockStats = {
-        totalTenants: 6,
-        healthy: 2,
-        warning: 2,
-        critical: 1,
-        avgHealthScore: 59.5,
-        totalPlatformRevenue: 1377422.95
-      }
-
-      setTenants(mockTenants)
-      setStats(mockStats)
+      setError('Failed to load tenant behavior data. Please try again.')
+      setTenants([])
       setTotalPages(1)
     } finally {
       setLoading(false)
@@ -461,11 +174,11 @@ export default function TenantBehaviorPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)
   }
 
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num)
+    return new Intl.NumberFormat('en-IN').format(num)
   }
 
   const filteredTenants = tenants.filter(tenant => {
@@ -497,6 +210,14 @@ export default function TenantBehaviorPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+          <button onClick={fetchTenantBehavior} className="mt-1 text-sm text-red-600 underline">Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 via-teal-600 to-green-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">

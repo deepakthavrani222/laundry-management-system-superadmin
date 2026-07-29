@@ -37,15 +37,10 @@ export default function SubscriptionsPage() {
         params: { search }
       })
       
-      console.log('Subscriptions API Response:', response.data)
-      
       // Backend returns data in response.data.data
       const subscriptionsData = response.data?.data?.subscriptions
-      
+
       if (subscriptionsData && subscriptionsData.length > 0) {
-        console.log('First tenancy data:', subscriptionsData[0])
-        console.log('Plan data:', subscriptionsData[0]?.subscription?.planId)
-        console.log('Price data:', subscriptionsData[0]?.subscription?.planId?.price)
         // Map tenancy data to subscription format
         const mappedSubscriptions = subscriptionsData.map((tenancy: any) => {
           const billingCycle = tenancy.subscription?.billingCycle || 'monthly'
@@ -75,10 +70,8 @@ export default function SubscriptionsPage() {
           }
         })
         
-        console.log('Mapped Subscriptions:', mappedSubscriptions)
         setSubscriptions(mappedSubscriptions)
       } else {
-        console.log('No subscriptions found in response')
         setSubscriptions([])
       }
     } catch (error: any) {

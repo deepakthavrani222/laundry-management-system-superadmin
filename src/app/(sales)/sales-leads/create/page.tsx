@@ -45,7 +45,7 @@ export default function CreateLeadPage() {
       const response = await api.post('/sales/leads', formData)
       
       if (response.data?.data?.lead) {
-        router.push(`/leads/${response.data.data.lead._id}`)
+        router.push(`/sales-leads/${response.data.data.lead._id}`)
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create lead')
@@ -75,7 +75,7 @@ export default function CreateLeadPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href="/sales/leads"
+          href="/sales-leads"
           className="p-2 hover:bg-gray-100 rounded-lg"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -308,7 +308,7 @@ export default function CreateLeadPage() {
         {/* Actions */}
         <div className="flex justify-end gap-4 pt-4 border-t">
           <Link
-            href="/sales/leads"
+            href="/sales-leads"
             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             Cancel

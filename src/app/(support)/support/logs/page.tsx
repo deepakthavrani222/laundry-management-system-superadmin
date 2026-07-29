@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api'
 import { FileText, Filter, Search, Download, Eye, Shield, User, AlertTriangle, CheckCircle } from 'lucide-react'
 
 interface SupportLog {
@@ -33,31 +34,13 @@ export default function SupportLogsPage() {
   const fetchSupportLogs = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
+      const params: Record<string, string> = { limit: '100' }
+      if (typeFilter !== 'all') params.type = typeFilter
+      if (severityFilter !== 'all') params.severity = severityFilter
+      if (dateRange !== 'all') params.dateRange = dateRange
 
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const params = new URLSearchParams({
-        limit: '100',
-        ...(typeFilter !== 'all' && { type: typeFilter }),
-        ...(severityFilter !== 'all' && { severity: severityFilter }),
-        ...(dateRange !== 'all' && { dateRange })
-      })
-
-      const response = await fetch(`http://localhost:5000/api/support/logs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setLogs(data.data || [])
-      }
+      const response = await api.get('/support/logs', { params })
+      setLogs(response.data.data || [])
     } catch (error) {
       console.error('Error fetching support logs:', error)
     } finally {

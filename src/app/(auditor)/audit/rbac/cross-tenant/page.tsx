@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import {
   Globe,
@@ -112,7 +111,7 @@ export default function CrossTenantRolesPage() {
             riskLevel: adminCount > 5 ? 'high' : adminCount > 3 ? 'medium' : 'low' as any,
             lastRoleChange: t.updatedAt || t.createdAt || new Date().toISOString(),
             privilegeEscalationRisk: adminCount > 5,
-            crossTenantAccess: false
+            crossTenantAccess: t.crossTenantAccess ?? false
           }
         })
 
@@ -127,7 +126,7 @@ export default function CrossTenantRolesPage() {
         }
 
         setTenants(filtered)
-        setTotalPages(Math.ceil(filtered.length / 20))
+        setTotalPages(Math.ceil((data.data?.total || data.data?.data?.total || filtered.length) / 20))
         setStats({
           totalTenants: transformed.length,
           highRiskTenants: transformed.filter(t => t.riskLevel === 'high').length,

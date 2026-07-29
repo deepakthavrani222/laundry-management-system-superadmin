@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
 import {
   UserPlus,
@@ -74,7 +73,7 @@ export default function RBACAssignmentsPage() {
         const records = data.data?.data || data.data || []
         const recordsArr = Array.isArray(records) ? records : []
         setAssignments(recordsArr)
-        setTotalPages(Math.ceil(recordsArr.length / 50))
+        setTotalPages(Math.ceil((data.data?.total || data.data?.data?.total || recordsArr.length) / 50))
 
         // Calculate stats from real data
         const now = Date.now()
@@ -102,21 +101,23 @@ export default function RBACAssignmentsPage() {
   }
 
   const getActionColor = (action: string) => {
-    switch (action) {
-      case 'assign': return 'text-green-700 bg-green-100'
-      case 'revoke': return 'text-red-700 bg-red-100'
-      case 'modify': return 'text-blue-700 bg-blue-100'
-      default: return 'text-gray-700 bg-gray-100'
-    }
+    const a = action?.toLowerCase()
+    const isAssign = a?.includes('assign') || a?.includes('create')
+    const isRevoke = a?.includes('revoke') || a?.includes('delete')
+    if (isAssign) return 'text-green-700 bg-green-100'
+    if (isRevoke) return 'text-red-700 bg-red-100'
+    if (a?.includes('modify') || a?.includes('update')) return 'text-blue-700 bg-blue-100'
+    return 'text-gray-700 bg-gray-100'
   }
 
   const getActionIcon = (action: string) => {
-    switch (action) {
-      case 'assign': return <ShieldCheck className="w-4 h-4" />
-      case 'revoke': return <ShieldOff className="w-4 h-4" />
-      case 'modify': return <ArrowRightLeft className="w-4 h-4" />
-      default: return <ShieldAlert className="w-4 h-4" />
-    }
+    const a = action?.toLowerCase()
+    const isAssign = a?.includes('assign') || a?.includes('create')
+    const isRevoke = a?.includes('revoke') || a?.includes('delete')
+    if (isAssign) return <ShieldCheck className="w-4 h-4" />
+    if (isRevoke) return <ShieldOff className="w-4 h-4" />
+    if (a?.includes('modify') || a?.includes('update')) return <ArrowRightLeft className="w-4 h-4" />
+    return <ShieldAlert className="w-4 h-4" />
   }
 
   const getStatusColor = (status: string) => {

@@ -463,7 +463,7 @@ export default function LeadDetailPage() {
           onClose={() => setShowConvertModal(false)}
           onSuccess={() => {
             setShowConvertModal(false)
-            router.push('/leads')
+            router.push('/sales-leads')
           }}
         />
       )}
@@ -475,7 +475,7 @@ export default function LeadDetailPage() {
           onClose={() => setShowLostModal(false)}
           onSuccess={() => {
             setShowLostModal(false)
-            router.push('/leads')
+            router.push('/sales-leads')
           }}
         />
       )}
@@ -498,7 +498,7 @@ export default function LeadDetailPage() {
           onClose={() => setShowDeleteModal(false)}
           onSuccess={() => {
             setShowDeleteModal(false)
-            router.push('/leads')
+            router.push('/sales-leads')
           }}
         />
       )}

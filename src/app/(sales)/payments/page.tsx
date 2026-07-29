@@ -33,8 +33,6 @@ export default function PaymentsPage() {
         params: { search }
       })
       
-      console.log('Payments API Response:', response.data) // Debug log
-      
       if (response.data?.data?.payments) {
         // Add tenancyName from populated tenancy data
         const paymentsWithNames = response.data.data.payments.map((payment: any) => ({
@@ -53,8 +51,6 @@ export default function PaymentsPage() {
   const fetchStats = async () => {
     try {
       const response = await api.get('/sales/payments/stats')
-      
-      console.log('Payment Stats API Response:', response.data) // Debug log
       
       if (response.data?.data) {
         setStats(response.data.data)

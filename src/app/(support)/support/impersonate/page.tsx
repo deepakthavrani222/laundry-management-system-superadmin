@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Shield, User, Clock, AlertTriangle, Eye, StopCircle, Search, Play } from 'lucide-react'
+import toast from 'react-hot-toast'
+import api from '@/lib/api'
 
 interface ImpersonationSession {
   sessionId: string
@@ -39,25 +41,8 @@ export default function SafeImpersonationPage() {
 
   const fetchActiveSessions = async () => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      // Fetch active impersonation sessions
-      const response = await fetch('http://localhost:5000/api/support/impersonation/active', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setActiveSessions(data.data || [])
-      }
+      const response = await api.get('/support/impersonation/active')
+      setActiveSessions(response.data?.data || [])
     } catch (error) {
       console.error('Error fetching active sessions:', error)
     }
@@ -71,24 +56,8 @@ export default function SafeImpersonationPage() {
 
     try {
       setLoading(true)
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch(`http://localhost:5000/api/support/users/search?query=${encodeURIComponent(searchTerm)}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSearchResults(data.data || [])
-      }
+      const response = await api.get(`/support/users/search?query=${encodeURIComponent(searchTerm)}`)
+      setSearchResults(response.data?.data || [])
     } catch (error) {
       console.error('Error searching users:', error)
     } finally {
@@ -98,76 +67,34 @@ export default function SafeImpersonationPage() {
 
   const startImpersonation = async (userId: string) => {
     if (!impersonationReason.trim()) {
-      alert('Please provide a reason for impersonation')
+      toast.error('Please provide a reason for impersonation')
+      setLoading(false)
       return
     }
 
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/impersonation', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: userId,
-          duration: selectedDuration,
-          reason: impersonationReason.trim()
-        })
+      await api.post('/support/impersonation', {
+        userId: userId,
+        duration: selectedDuration,
+        reason: impersonationReason.trim()
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        alert(`Impersonation session started successfully. Session ID: ${data.data.sessionId}`)
-        setImpersonationReason('') // Clear the reason field
-        fetchActiveSessions()
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Failed to start impersonation')
-      }
-    } catch (error) {
+      toast.success('Impersonation session started')
+      setImpersonationReason('')
+      fetchActiveSessions()
+    } catch (error: any) {
       console.error('Error starting impersonation:', error)
-      alert('Failed to start impersonation')
+      toast.error(error.response?.data?.message || 'Failed to start impersonation')
     }
   }
 
   const endImpersonation = async (sessionId: string) => {
     try {
-      const token = localStorage.getItem('auth-storage')
-      if (!token) return
-
-      const parsed = JSON.parse(token)
-      const authToken = parsed.state?.token
-      if (!authToken) return
-
-      const response = await fetch('http://localhost:5000/api/support/impersonation/end', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sessionId: sessionId
-        })
-      })
-
-      if (response.ok) {
-        alert('Impersonation session ended successfully')
-        fetchActiveSessions()
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Failed to end impersonation')
-      }
-    } catch (error) {
+      await api.post('/support/impersonation/end', { sessionId })
+      toast.success('Impersonation session ended successfully')
+      fetchActiveSessions()
+    } catch (error: any) {
       console.error('Error ending impersonation:', error)
-      alert('Failed to end impersonation')
+      toast.error(error.response?.data?.message || 'Failed to end impersonation')
     }
   }
 

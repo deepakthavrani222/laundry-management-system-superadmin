@@ -87,11 +87,8 @@ export default function FinanceDashboardPage() {
       setLoading(true)
       setError('')
 
-      console.log('🔄 Fetching financial overview...')
-
       // Fetch financial overview
       const overviewResponse = await superAdminApi.getFinancialOverview(timeframe)
-      console.log('📊 Financial overview response:', overviewResponse)
 
       if (overviewResponse.success && overviewResponse.data?.overview) {
         const overview = overviewResponse.data.overview
@@ -115,14 +112,11 @@ export default function FinanceDashboardPage() {
       }
 
       // Fetch recent transactions
-      console.log('💳 Fetching recent transactions...')
       const transactionsResponse = await superAdminApi.getTransactions({
         limit: 5,
         sortBy: 'createdAt',
         sortOrder: 'desc'
       })
-
-      console.log('💳 Transactions response:', transactionsResponse)
 
       if (transactionsResponse.success && transactionsResponse.data?.transactions) {
         setRecentTransactions(transactionsResponse.data.transactions)

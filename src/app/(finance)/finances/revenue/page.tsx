@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { superAdminApi } from '@/lib/superAdminApi'
+import toast from 'react-hot-toast'
 import { 
   DollarSign,
   TrendingUp,
@@ -63,6 +64,7 @@ interface RevenueMetrics {
 
 export default function PlatformRevenuePage() {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState('30d')
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null)
   const [revenueMetrics, setRevenueMetrics] = useState<RevenueMetrics[]>([])
@@ -85,9 +87,10 @@ export default function PlatformRevenuePage() {
         throw new Error(data.message || 'Failed to fetch revenue data')
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching revenue data:', error)
-      
+      setError(error?.response?.data?.message || 'Failed to load data')
+
       // Show empty state instead of mock data
       setRevenueData({
         totalRevenue: 0,
@@ -125,6 +128,12 @@ export default function PlatformRevenuePage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <span className="text-red-700 text-sm">{error}</span>
+          <button className="text-red-600 text-sm underline ml-4" onClick={() => { setError(null); fetchRevenueData() }}>Retry</button>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
@@ -183,7 +192,7 @@ export default function PlatformRevenuePage() {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors flex items-center">
+            <button onClick={() => toast('Export coming soon')} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors flex items-center">
               <Download className="w-4 h-4 mr-2" />
               Export
             </button>
